@@ -1,0 +1,864 @@
+
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Dirección de Administración Geografica y Catastro</title>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.18/esri/themes/dark/main.css" />
+    <script src="https://js.arcgis.com/4.18/"></script>
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .esri-popup--is-docked-top-right .esri-popup__main-container {
+            max-height: 100%;
+        }
+
+        .esri-coordinate-conversion__conversions-view {
+            margin: 0 0 0 0 !important;
+        }
+
+        #appContainer {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+
+        #viewDiv {
+            flex: 1;
+            width: 100%;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            width: 100%;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 45px;
+            height: 22px;
+            vertical-align: middle;
+        }
+
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: 0.4s;
+            transition: 0.4s;
+        }
+
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 20px;
+                width: 20px;
+                left: 3px;
+                bottom: 1px;
+                background-color: white;
+                -webkit-transition: 0.4s;
+                transition: 0.4s;
+            }
+
+        input:checked + .slider {
+            background-color: #2196f3;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196f3;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(20px);
+            -ms-transform: translateX(20px);
+            transform: translateX(20px);
+        }
+
+        /* Rounded sliders */
+
+        .slider.round {
+            border-radius: 20px;
+        }
+
+            .slider.round:before {
+                border-radius: 50%;
+            }
+
+        .labelText {
+            padding-left: 5px;
+            font-size: 15px;
+        }
+
+        #mainDiv {
+            padding: 8px;
+        }
+
+        #elevationDiv {
+            position: absolute;
+            top: 15px;
+            left: 100px;
+            padding: 10px;
+            margin: 0px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+
+        #limpiarLabel {
+            cursor: pointer;
+            width: auto;
+            height: auto;
+        }
+
+        #infoDiv {
+            position: absolute;
+            top: 15px;
+            left: 60px;
+        }
+
+        #toolbarDiv {
+            display: none;
+            overflow-y: auto;
+            overflow-x: hidden;
+            /*position: absolute;
+            top: 15px;
+            left: 50px;*/
+            /*padding: 5px;
+            cursor: default;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;*/
+        }
+
+        /*
+        .esri-widget--button.active,
+        .esri-widget--button.active:hover,
+        .esri-widget--button.active:focus {
+            cursor: default;
+            background-color: #999696;
+        }
+
+        .esri-widget--button.active path,
+        .esri-widget--button.active:hover path,
+        .esri-widget--button.active:focus path {
+            fill: #E4E4E4;
+        }*/
+    </style>
+
+    <script>
+        require([
+            "esri/Basemap",
+            "esri/Map",
+            "esri/geometry/Extent",
+            "esri/layers/FeatureLayer",
+            "esri/layers/MapImageLayer",
+            "esri/layers/TileLayer",
+            "esri/views/MapView",
+            "esri/PopupTemplate",
+            "esri/popup/content/CustomContent",
+            "esri/widgets/BasemapGallery",
+            "esri/widgets/CoordinateConversion",
+            "esri/widgets/Expand",
+            "esri/widgets/Home",
+            "esri/widgets/LayerList",
+            "esri/widgets/Legend",
+            "esri/widgets/Measurement",
+            "esri/widgets/Search",
+            "dojo/keys", "dojo/dom", "dojo/on",
+            "dojo/domReady!"
+        ], function (Basemap, Map, Extent, FeatureLayer, MapImageLayer, TileLayer, MapView, PopupTemplate, CustomContent, BasemapGallery, CoordinateConversion, Expand, Home, LayerList, Legend, Measurement, Search, keys, dom, on) {
+            let view;
+
+            let matricesURL = "http://192.168.105.219:6080/arcgis/rest/services/catastro/matrices_predios/MapServer";
+            let restitucion2015URL = "http://192.168.105.219:6080/arcgis/rest/services/catastro/restitucion2015/MapServer";
+            let prediosURL = "http://192.168.105.219:6080/arcgis/rest/services/catastro/predios_cba/MapServer";
+            let manzanasURL = "http://192.168.105.219:6080/arcgis/rest/services/catastro/manzanasdb/MapServer";
+            let viasURL = "http://192.168.105.219:6080/arcgis/rest/services/planificacion/vias/MapServer";
+            let viasOchavesURL = "http://192.168.105.219:6080/arcgis/rest/services/planificacion/viasOchaves/MapServer";
+            let materialViasURL = "http://192.168.105.219:6080/arcgis/rest/services/coeficientes/materialVias/MapServer";
+            let poligonosArcoURL = "http://192.168.105.219:6080/arcgis/rest/services/planificacion/poligonos_arco/MapServer";
+            let sectorialesURL = "http://192.168.105.219:6080/arcgis/rest/services/planificacion/sectorialesUsoSuelo/MapServer";
+            let limitesURL = "http://192.168.105.219:6080/arcgis/rest/services/planificacion/limites/MapServer";
+            let restriccionesURL = "http://192.168.105.219:6080/arcgis/rest/services/restricciones/restriccionesSeguridad/MapServer";
+            let usoSueloURL = "http://192.168.105.219:6080/arcgis/rest/services/planificacion/usoSuelodb/MapServer";
+            let pendienteCatastroURL = "http://192.168.105.219:6080/arcgis/rest/services/catastro/pendientecat_500/MapServer";
+            let mapabase = "http://192.168.105.219:6080/arcgis/rest/services/catastro/pendientecat_500/MapServer";
+            let semURL = "http://192.168.105.219:6080/arcgis/rest/services/sem/sem/MapServer";
+            let imagen2019URL = "http://192.168.105.219:6080/arcgis/rest/services/imagenes/imagen2019_500/MapServer";
+            let imagen2018URL = "http://192.168.105.219:6080/arcgis/rest/services//imagenes/CBA_2018500/MapServer";
+            let imagen06102017URL = "http://192.168.105.219:6080/arcgis/rest/services/imagenes/imagen_06102017j2/MapServer";
+            let imagen2017URL = "http://192.168.105.219:6080/arcgis/rest/services/imagenes/imagen2017_500/MapServer";
+            let imagen2015URL = "http://192.168.105.219:6080/arcgis/rest/services/imagenes/imagen2015_500/MapServer";
+            let imagen2007URL = "http://192.168.105.219:6080/arcgis/rest/services/imagenes/imagen2007_500/MapServer";
+
+            //constantes
+            const vCopyright = 'GRS 80 - MARGEN SIRGAS(WGS 84)';
+            var actualBasemap = null;
+
+            const map = new Map({
+                //layers: [/*imagenesGroupLayer,*/ prediosLayer]
+            });
+
+            view = new MapView({
+                container: "viewDiv",
+                map: map,
+                /* highlightOptions: {
+                     color: "blue",
+                     fillOpacity: 0.5,
+                     haloColor: "red"
+                 },*/
+                popup: {
+                    dockEnabled: false,
+                    dockOptions: {
+                        buttonEnabled: true,
+                        breakpoint: false,
+                        position: "auto"
+                    }
+                },
+                constraints: { rotationEnabled: false }
+            });
+
+            //Templates
+
+            const templatePredios = new PopupTemplate({
+                title: "PREDIO {expression/codcat-format}",
+                //title: "PREDIO",
+                outFields: ["*"],
+                content: [{
+                    type: "fields",
+                    fieldInfos: [{ fieldName: "CodCat", label: "Código Catastral" }, { fieldName: "Sbdistrito", label: "Nombre Subdistrito" }, { fieldName: "Sbdist_Nro", label: "Subdistrito" }, { fieldName: "Nro_manzan", label: "Nro. Manzana" }, { fieldName: "Nro_predio", label: "Nro. Predio" }, { fieldName: "NoInmueble", label: "Nro. Inmueble" }, { fieldName: "comuna", label: "Comuna" }, { fieldName: "ZTributari", label: "Zona Tributaria" },
+                    { fieldName: "SHAPE.STArea()", label: "Area", format: { digitSeparator: true, places: 2 } },
+                    { fieldName: "SHAPE.STLength()", label: "Perimetro", format: { digitSeparator: true, places: 2 } }
+                        , { fieldName: "expression/codcat-format" }]
+                }],
+                expressionInfos: [{
+                    name: "codcat-format",
+                    title: "Codigo Catastral",
+                    expression: "Concatenate(Mid($feature.CodCat, 0, 2), '-', Mid($feature.CodCat, 2, 3), '-', Mid($feature.CodCat, 5, 3), '-', Mid($feature.CodCat, 8, 1), '-', Mid($feature.CodCat, 9, 2), '-', Mid($feature.CodCat, 11, 3), '-', Mid($feature.CodCat, 14, 3))"
+                }]
+            });
+
+            var templateManzanas = {
+                title: "MANZANA {expression/manzana-format}",
+                outFields: ['*'],
+                content: [{
+                    type: "fields",
+                    fieldInfos: [{ fieldName: "Manzanas", label: "Nro. Manzana" }, { fieldName: "Distrito", label: "Distrito" }, { fieldName: "SubDistrit", label: "Subdistrito" }, { fieldName: "Nombre_SD", label: "Nombre Subdistrito" }, { fieldName: "Comuna", label: "Comuna" }, { fieldName: "Shape.STArea()", label: "Area", format: { digitSeparator: true, places: 2 } }, { fieldName: "Shape.STLength()", label: "Perimetro", format: { digitSeparator: true, places: 2 } }
+                        , { fieldName: "expression/manzana-format" }]
+                }],
+                expressionInfos: [{
+                    name: "manzana-format",
+                    title: "Manzana DD-SS-MMM",
+                    expression: "Concatenate($feature.Distrito, '-', $feature.SubDistrit, '-', $feature.Manzanas)"
+                }]
+            };
+
+            var templateVias = {
+                title: "VIA",
+                outFields: ['*'],
+                lastEditInfoEnabled: true,
+                content: [{
+                    type: "fields",
+                    fieldInfos: [{ fieldName: "Tipo", label: "Tipo" }, { fieldName: "Nombre", label: "Nombre" }, { fieldName: "Shape_Leng", label: "Perimetro", format: { digitSeparator: true, places: 2 } }]
+                }]
+            };
+
+            //Fin Templates
+
+            //Cargar capas
+            let pendienteCastastroLayer = cargarLayer({
+                url: pendienteCatastroURL,
+                visible: false,
+                title: "Pendiente Catastro"
+            });
+
+            let usoSueloLayer = cargarLayer({
+                url: usoSueloURL,
+                visible: true,
+                title: "Uso de Suelo",
+                opacity: 0.5,
+                sublayers: [
+                    {
+                        id: 0, visible: true, title: "Uso de suelo",
+                        sublayers: [{
+                            id: 2,
+                            //opacity: 0.5,
+                            visible: true,
+                            title: "Uso Fuera del Area Urbana"/*, opacity: 0.5*/
+                        },
+                        { id: 1, visible: true, title: "Uso de suelo"/*, opacity: 0.5*/ }]
+                    }]
+            });
+
+            let restriccionesLayer = cargarLayer({
+                url: restriccionesURL,
+                visible: true,
+                opacity: 0.5,
+                title: "Restricciones de Seguridad"
+            });
+
+            let limitesLayer = cargarLayer({
+                url: limitesURL,
+                visible: true,
+                sublayers: [{ id: 4, visible: true, title: "Limites de Cercado" },
+                { id: 3, visible: true, title: "Subdistritos" },
+                { id: 2, visible: true, title: "Comunas" },
+                { id: 1, visible: true, title: "Distritos" },
+                { id: 0, visible: true, title: "Area Urbana" }],
+                title: "Limites"
+            });
+
+            let sectorialesLayer = cargarLayer({
+                url: sectorialesURL,
+                visible: true,
+                opacity: 0.5,
+                sublayers: [{ id: 1, visible: true, title: "Sectoriales" },
+                { id: 0, visible: true, title: "Sectoriales Uso de suelo" }],
+                title: "Sectoriales"
+            });
+
+            let poligonosArcoLayer = cargarLayer({
+                url: poligonosArcoURL,
+                visible: false,
+                title: "Poligonos ARCO"
+            });
+
+            let materialViasLayer = cargarLayer({
+                url: materialViasURL,
+                visible: false,
+                title: "Material de Vias"
+            });
+
+            let viasOchavesLayer = cargarLayer({
+                url: viasOchavesURL,
+                visible: false,
+                title: "Vias Ochaves"
+            });
+
+            let viasLayer = cargarLayer({
+                url: viasURL,
+                visible: true,
+                title: "Vias",
+                sublayers: [
+                    { id: 0, visible: true, title: "Vias", popupTemplate: templateVias }]
+            });
+
+            /*var viasLayer = new FeatureLayer({
+                url: viasURL,
+                outFields: ['*'],
+                visible: true,
+                //opacity: 0.5,
+                title: "Vias",
+                popupTemplate: templateVias
+            });
+            map.layers.add(viasLayer);*/
+
+            let manzanasLayer = cargarLayer({
+                url: manzanasURL,
+                visible: true,
+                title: "Manzanas",
+                sublayers: [
+                    { id: 0, visible: true, title: "Manzanas", popupTemplate: templateManzanas }]
+            });
+
+            /*var manzanasLayer = new FeatureLayer({
+                url: manzanasURL,
+                outFields: ['*'],
+                visible: true,
+                //opacity: 0.5,
+                title: "Manzanas",
+                popupTemplate: templateManzanas
+            });
+            map.layers.add(manzanasLayer);*/
+
+            //ETIQUETAS
+            const predioLabelingInfo = {
+                // autocasts as new LabelClass()
+                labelExpressionInfo: {
+                    expression: "$feature.Nro_predio"
+                },
+                //labelExpression: "[Nro_predio]",
+                labelPlacement: "always-horizontal",
+                deconflictionStrategy: "none",
+                symbol: {
+                    type: "text", // autocasts as new TextSymbol()
+                    //color: "#666",
+                    color: [64, 101, 235, 153],
+                    //haloColor: [0, 0, 0, 0.85],
+                    //haloSize: 1,
+                    //text: "You are here",
+                    font: {
+                        // autocast as new Font()
+                        family: "arial",
+                        size: "14px"//,
+                        //weight: "bold"
+                    }
+                },
+            };
+
+            const predioRenderer = {
+                type: "simple", // autocasts as new SimpleRenderer()
+                symbol: {
+                    type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+                    color: "black",//"#666",
+                    size: 0.4,
+                    outline: {
+                        color: "black",//[64, 101, 235, 153],
+                        width: 1
+                    }
+                }
+            }
+            //FIN ETIQUETAS
+
+            /*let prediosLayer = cargarLayer({
+                url: prediosURL,
+                visible: true,
+                title: "Predios",
+                outFields: ['*'],
+                sublayers: [
+                    {
+                        id: 0,
+                        outFields: ['*'],
+                        visible: true,
+                        title: "Predio",
+                        labelsVisible: true,
+                        popupTemplate: templatePredios,
+                        //renderer: predioRenderer,
+                        labelingInfo: [predioLabelingInfo]
+
+                    }],
+            });*/
+
+            var prediosLayer = new FeatureLayer({
+                url: prediosURL,
+                outFields: ['*'],
+                visible: true,
+                title: "Predios",
+                popupTemplate: templatePredios,
+                //renderer: predioRenderer,
+                labelingInfo: [predioLabelingInfo]
+            });
+            map.layers.add(prediosLayer);
+
+            let restitucion2015Layer = cargarLayer({
+                url: restitucion2015URL,
+                visible: false,
+                opacity: 1,
+                sublayers: [
+                    { id: 4, visible: true, title: "Predios" },
+                    { id: 3, visible: true, title: "En Construccion" },
+                    { id: 2, visible: true, title: "Construcciones" },
+                    { id: 1, visible: true, title: "Const Ruinas" },
+                    { id: 0, visible: true, title: "Const Cobertizos" }]
+            });
+
+            let matricesLayer = cargarLayer({
+                url: matricesURL,
+                visible: false,
+                title: "Matrices"
+            });
+
+            let semLayer = cargarLayer({
+                url: semURL,
+                visible: false,
+                title: "SEM"
+            });
+
+            //FIN CARGAR CAPAS
+
+            let baseMap2019 = cargarBaseMap(imagen2019URL, "2019")
+            let baseMap2018 = cargarBaseMap(imagen2018URL, "2018")
+            let baseMap06102017 = cargarBaseMap(imagen06102017URL, "06-10-2017")
+            let baseMap2017 = cargarBaseMap(imagen2017URL, "2017")
+            let baseMap2015 = cargarBaseMap(imagen2015URL, "2015")
+            let baseMap2007 = cargarBaseMap(imagen2007URL, "2007")
+
+            //FIN CARGAR CAPAS
+
+            view.when(function () {
+
+                view.extent = new Extent({
+                    xmin: 792623.8393543878,
+                    ymin: 8059312.670740076,
+                    xmax: 810149.874406458,
+                    ymax: 8090334.5994506,
+                    spatialReference: {
+                        wkid: 32719
+                    }
+                });
+
+                view.ui.add(new Home({
+                    view: view
+                }),
+                    "top-left"
+                );
+
+                var layerList = new LayerList({
+                    view: view,
+                    listItemCreatedFunction: defineActions
+                });
+
+                layerList.on("trigger-action", function (event) {
+                    var id = event.action.id;
+                    var currentLayer = event.item.layer;
+                    if (id === "increase-opacity") {
+                        if (currentLayer.opacity < 1) {
+                            currentLayer.opacity += 0.20;
+                        }
+                    } else if (id === "decrease-opacity") {
+                        if (currentLayer.opacity > 0) {
+                            currentLayer.opacity -= 0.20;
+                        }
+                    }
+                });
+
+                const eLayerList = new Expand({
+                    view: view,
+                    content: layerList,
+                    expanded: false
+                });
+
+                //GALERIA DE MAPAS
+                var basemapGallery = new BasemapGallery({
+                    view: view,
+                    source: [baseMap2019, baseMap2018, baseMap06102017, baseMap2017, baseMap2015, baseMap2007]
+                });
+
+                const eBasemapGallery = new Expand({
+                    view: view,
+                    content: basemapGallery,
+                    expanded: false
+                });
+
+                //Leyenda
+                const elegend = new Expand({
+                    content: new Legend({
+                        view: view,
+                        //style: "classic",
+                        style: {
+                            type: "card",
+                            layout: "stack"
+                        },
+                        layerInfos: [
+                            //{ layer: semLayer},
+                            { layer: matricesLayer },
+                            { layer: restitucion2015Layer },
+                            { layer: prediosLayer },
+                            { layer: manzanasLayer },
+                            { layer: viasLayer },
+                            { layer: viasOchavesLayer },
+                            { layer: materialViasLayer },
+                            { layer: poligonosArcoLayer },
+                            { layer: sectorialesLayer },
+                            { layer: limitesLayer },
+                            { layer: restriccionesLayer },
+                            { layer: usoSueloLayer },
+                            { layer: pendienteCastastroLayer }
+                        ]
+                    }),
+                    view: view,
+                    expanded: false
+                });
+                //FIN LEYENDA
+                //Search
+                /*var featureLayerPredios = new FeatureLayer({
+                    url: "http://192.168.105.219:6080/arcgis/rest/services/catastro/predios_cba/MapServer/0",
+                    outFields: ["*"],
+                    popupTemplate: templatePredios
+                });*/
+
+                var featureLayerManzanas = new FeatureLayer({
+                    url: "http://192.168.105.219:6080/arcgis/rest/services/catastro/manzanasdb/MapServer/0",
+                    outFields: ["*"],
+                    popupTemplate: templateManzanas
+                });
+
+                var featureLayerVias = new FeatureLayer({
+                    url: "http://192.168.105.219:6080/arcgis/rest/services/planificacion/vias/MapServer/0",
+                    outFields: ["*"],
+                    popupTemplate: templateVias
+                });
+                var searchWidget = new Search({
+                    view: view,
+                    allPlaceholder: "Codigo Catastral",
+                    autoNavigate: true,
+                    includeDefaultSources: false,
+                    locationEnabled: false,
+                    popupEnabled: true,
+                    searchAllEnabled: true,
+                    suggestionsEnabled: true,
+                    sources: [
+                        {
+                            layer: prediosLayer,
+                            searchFields: ["CodCat"],
+                            suggestionTemplate: "{Sbdist_Nro}-{Nro_manzan}-{Nro_predio}",
+                            exactMatch: false,
+                            displayField: "CodCat",
+                            outFields: ["*"],
+                            maxResults: 30,
+                            maxSuggestions: 30,
+                            placeholder: "SSMMMPPP",
+                            minSuggestCharacters: 5,
+                            //zoomScale: 500000,
+                            name: "Predios",
+                        },
+                        {
+                            layer: featureLayerManzanas,
+                            searchFields: ["Manzanas"],
+                            suggestionTemplate: "{SubDistrit} - {Nombre_SD}: {Manzanas}",
+                            exactMatch: false,
+                            displayField: "Manzanas",
+                            outFields: ["*"],
+                            maxResults: 40,
+                            maxSuggestions: 40,
+                            placeholder: "Nro. Manzana",
+                            orderByFields: ["SubDistrit ASC"],
+                            minSuggestCharacters: 3,
+                            name: "Manzanas"
+                        },
+                        {
+                            layer: featureLayerVias,
+                            searchFields: ["Nombre_V"],
+                            //suggestionTemplate: "{SubDistrit} - {Nombre_SD}: {Manzanas}",
+                            exactMatch: false,
+                            displayField: "Nombre_V",
+                            outFields: ["*"],
+                            maxResults: 10,
+                            maxSuggestions: 10,
+                            placeholder: "NOMBRE DE VIA",
+                            name: "Vias",
+                        }
+                    ]
+                });
+                searchWidget.on("select-result", function (event) {
+                    console.log("Results of the search: ", event);
+                });
+
+                searchWidget.on("suggest-complete", function (event) {
+                    // The results are stored in the event Object[]
+                    console.log("Results of suggest: ", event);
+                });
+
+                searchWidget.on("suggest-start", function (event) {
+                    console.log("suggest-start", event);
+                });
+
+                const eSearch = new Expand({
+                    view: view,
+                    content: searchWidget,
+                    expanded: true
+                });
+                //Fin Search
+
+                //CLEAN BASEMAP
+                document
+                    .getElementById("infoDiv")
+                    .addEventListener("click", clearBasemap);
+                function clearBasemap(ev) {
+                    basemapGallery.activeBasemap = null;
+                }
+                //FIN CLEAN BASEMAP
+                /*basemapGallery.on("click", function (event) {
+                     // event is the event handle returned after the event fires.
+                     console.log(basemapGallery.activeBasemap);
+                 });*/
+                //view.ui.add(eFeatureTable, "bottom-right");
+
+                // Event handler that fires each time an action is clicked.
+                var popup = view.popup;
+                popup.viewModel.on("trigger-action", function (event) {
+                    console.log(view);
+                    // Execute the measureThis() function if the measure-this action is clicked
+                    if (event.action.id === "find-ruat") {
+                        var attributes = popup.viewModel.selectedFeature.attributes;
+                        window.open("http://siscat.catastrocbba.com/AdministracionTramitesCatastrales/DatosTecnicos/DatosByCodigoCatastral?codigoCatastral=" + attributes.CodCat);
+                    }
+                    else if (event.action.id === "find-rc") {
+                        var attributes = popup.viewModel.selectedFeature.attributes;
+                        window.open("http://siscat.catastrocbba.com/api/RegistroCatastralByCodigoCatastral/" + attributes.CodCat);
+                    }
+
+                });
+
+                const eCoordinate = new Expand({
+                    content: new CoordinateConversion({ view: view }),
+                    view: view,
+                    expanded: false
+                });
+
+                /*const toolbarDiv = document.getElementById("toolbarDiv");
+                view.ui.add(
+                    new Expand({
+                        view: view,
+                        content: toolbarDiv,
+                        expandIconClass: "esri-icon-table",
+                        expanded: false
+                    }), "top-left");
+                toolbarDiv.style.display = "block";*/
+
+                //MEASUREMENT
+                let activeView = view;
+
+                const measurement = new Measurement();
+
+                const distanceButton = document.getElementById('distance');
+                const areaButton = document.getElementById('area');
+                const clearButton = document.getElementById('clear');
+
+                distanceButton.addEventListener("click", function () {
+                    distanceMeasurement();
+                });
+                areaButton.addEventListener("click", function () {
+                    areaMeasurement();
+                });
+                clearButton.addEventListener("click", function () {
+                    clearMeasurements();
+                });
+                loadView();
+
+                function loadView() {
+                    activeView.set({
+                        container: "viewDiv"
+                    });
+                    activeView.ui.add(measurement, "bottom-right");
+                    //activeView.ui.add(legend, "bottom-left");
+                    measurement.view = activeView;
+                    //legend.view = activeView;
+                }
+
+                function distanceMeasurement() {
+                    const type = activeView.type;
+                    measurement.activeTool = type.toUpperCase() === "2D" ? "distance" : "direct-line";
+                    distanceButton.classList.add("active");
+                    areaButton.classList.remove("active");
+                }
+
+                function areaMeasurement() {
+                    measurement.activeTool = "area";
+                    distanceButton.classList.remove("active");
+                    areaButton.classList.add("active");
+                }
+
+                function clearMeasurements() {
+                    distanceButton.classList.remove("active");
+                    areaButton.classList.remove("active");
+                    measurement.clear();
+                }
+                //FIN MEASUREMENT
+
+                const toolbarDiv = document.getElementById("toolbarDiv");
+                const eToolbar = new Expand({
+                    view: view,
+                    content: toolbarDiv,
+                    expandIconClass: "esri-icon-measure",
+                    expanded: false
+                });
+
+                loadToolbar();
+
+                function loadToolbar() {
+                    if (eToolbar.expanded == false)
+                        toolbarDiv.style.display = "block";
+                    else
+                        toolbarDiv.style.display = "none";
+                };
+
+                /*eToolbar.on("click", function (event) {
+                    console.log("Results of the click expand: ", event);
+                });*/
+
+                /*view.eToolbar.on("click", function (event) {
+                    console.log("hola logfdafds" + event);
+                });*/
+                //toolbarDiv.style.display = "block";
+                view.ui.add(eToolbar, "top-left");
+                view.ui.add(eSearch, "top-right");
+                view.ui.add(eCoordinate, "top-right");
+                view.ui.add(eLayerList, "bottom-left");
+                view.ui.add(elegend, "bottom-right");
+                view.ui.add(eBasemapGallery, "bottom-right");
+            });
+
+            // FUNCIONES OPERABLES
+            function defineActions(event) {
+                var item = event.item;
+                item.actionsSections = [
+                    [
+                        {
+                            title: "Aumentar la opacidad",
+                            className: "esri-icon-up",
+                            id: "increase-opacity"
+                        },
+                        {
+                            title: "Disminuir la opacidad",
+                            className: "esri-icon-down",
+                            id: "decrease-opacity"
+                        }
+                    ]
+                ];
+            }
+
+            function cargarLayer(url) {
+                var layer1 = new MapImageLayer(url);
+                map.layers.add(layer1);
+                return layer1;
+            }
+
+            function cargarBaseMap(vUrl, vYear) {
+                var tileLayer1 = new TileLayer({ url: vUrl, visible: true, title: vYear, copyright: vCopyright });
+                var baseMap1 = new Basemap({
+                    baseLayers: [tileLayer1],
+                    title: vYear,
+                    id: vYear,
+                    thumbnailUrl: vUrl + "/info/thumbnail"
+                });
+                return baseMap1;
+            }
+            // FIN FUNCIONES OPERABLES
+        });
+    </script>
+</head>
+
+<body>
+    <div id="appContainer">
+        <div id="viewDiv"></div>
+        <div id="infoDiv" class="esri-component esri-home esri-widget--button esri-widget" role="button"
+             title="Limpiar Mapa base">
+            <span aria-hidden="true" class="esri-icon esri-icon-maps"></span>
+            <span class="esri-icon-font-fallback-text">Clean</span>
+        </div>
+        <div id="toolbarDiv" class="esri-widget">
+            <button id="distance" class="esri-widget--button esri-interactive esri-icon-measure-line"
+                    title="Distance Measurement Tool"></button>
+            <button id="area" class="esri-widget--button esri-interactive esri-icon-measure-area"
+                    title="Area Measurement Tool"></button>
+            <button id="clear" class="esri-widget--button esri-interactive esri-icon-trash" title="Clear Measurements"></button>
+        </div>
+    </div>
+</body>
+
+</html>

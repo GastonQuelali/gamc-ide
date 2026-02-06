@@ -10,7 +10,7 @@ export default function BaseMapView() {
         if (!mapDiv.current) return;
 
         const map = new Map({
-            basemap: "streets-navigation-vector",
+            basemap: "gray",
         });
 
         const view = new MapView({
