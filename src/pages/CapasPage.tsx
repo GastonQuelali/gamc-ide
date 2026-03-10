@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Copy, Check, Search, Filter, MapPin, Wifi, WifiOff } from "lucide-react"
+import { Copy, Check, Search, Filter, MapPin, Wifi, WifiOff, LayoutGrid, List } from "lucide-react"
 import Sidebar from "@/components/Sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -31,7 +31,7 @@ const capasMock: Capa[] = [
   { id: 12, nombre: "Catastro Rural", url: "http://192.168.105.219:6080/arcgis/rest/services/catastro/rural/MapServer", tipo: "Map Image", estado: "mantenimiento", thumbnail: "https://picsum.photos/seed/rural/150/100", fechaActualizacion: "2023-10-30" },
 ]
 
-const ITEMS_PER_PAGE = 5
+const ITEMS_PER_PAGE = 6
 
 export default function CapasPage() {
   const [capas] = useState<Capa[]>(capasMock)
@@ -40,6 +40,7 @@ export default function CapasPage() {
   const [filterEstado, setFilterEstado] = useState("all")
   const [filterTipo, setFilterTipo] = useState("all")
   const [copiedId, setCopiedId] = useState<number | null>(null)
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list")
 
   const filteredCapas = capas.filter(capa => {
     const matchesSearch = capa.nombre.toLowerCase().includes(searchTerm.toLowerCase())
@@ -69,10 +70,19 @@ export default function CapasPage() {
 
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
-      case "online": return <Wifi className="h-4 w-4" />
-      case "offline": return <WifiOff className="h-4 w-4" />
-      case "mantenimiento": return <MapPin className="h-4 w-4" />
+      case "online": return <Wifi className="h-3 w-3" />
+      case "offline": return <WifiOff className="h-3 w-3" />
+      case "mantenimiento": return <MapPin className="h-3 w-3" />
       default: return null
+    }
+  }
+
+  const getTipoColor = (tipo: string) => {
+    switch (tipo) {
+      case "Feature Layer": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+      case "Map Image": return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+      case "Tile Layer": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+      default: return "bg-gray-100 text-gray-800"
     }
   }
 
@@ -89,8 +99,8 @@ export default function CapasPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative md:col-span-2">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar capa..."
@@ -116,66 +126,132 @@ export default function CapasPage() {
         </Card>
 
         <Card>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="text-left p-4 font-medium">Previsualización</th>
-                    <th className="text-left p-4 font-medium">Nombre</th>
-                    <th className="text-left p-4 font-medium">Tipo</th>
-                    <th className="text-left p-4 font-medium">URL Servicio</th>
-                    <th className="text-left p-4 font-medium">Estado</th>
-                    <th className="text-left p-4 font-medium">Actualización</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedCapas.map((capa) => (
-                    <tr key={capa.id} className="border-b hover:bg-muted/50">
-                      <td className="p-4">
-                        <div className="w-24 h-16 rounded overflow-hidden bg-muted">
-                          <img 
-                            src={capa.thumbnail} 
-                            alt={capa.nombre}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      </td>
-                      <td className="p-4 font-medium">{capa.nombre}</td>
-                      <td className="p-4 text-muted-foreground">{capa.tipo}</td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <code className="text-xs bg-muted px-2 py-1 rounded max-w-[200px] truncate">
-                            {capa.url}
-                          </code>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => copyToClipboard(capa.url, capa.id)}
-                          >
-                            {copiedId === capa.id ? (
-                              <Check className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getEstadoColor(capa.estado)}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Vista:</span>
+                <Button
+                  variant={viewMode === "list" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "grid" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+              </div>
+              <span className="text-sm text-muted-foreground">
+                {filteredCapas.length} capas encontradas
+              </span>
+            </div>
+
+            {viewMode === "list" ? (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="text-left p-3 font-medium">Previsualización</th>
+                      <th className="text-left p-3 font-medium">Nombre / Tipo</th>
+                      <th className="text-left p-3 font-medium">URL Servicio</th>
+                      <th className="text-left p-3 font-medium">Estado</th>
+                      <th className="text-left p-3 font-medium">Actualización</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedCapas.map((capa) => (
+                      <tr key={capa.id} className="border-b hover:bg-muted/50">
+                        <td className="p-3">
+                          <div className="w-20 h-14 rounded overflow-hidden bg-muted">
+                            <img 
+                              src={capa.thumbnail} 
+                              alt={capa.nombre}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <div className="font-medium">{capa.nombre}</div>
+                          <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs ${getTipoColor(capa.tipo)}`}>
+                            {capa.tipo}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <code className="text-xs bg-muted px-2 py-1 rounded max-w-[180px] truncate">
+                              {capa.url}
+                            </code>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 flex-shrink-0"
+                              onClick={() => copyToClipboard(capa.url, capa.id)}
+                            >
+                              {copiedId === capa.id ? (
+                                <Check className="h-3.5 w-3.5 text-green-500" />
+                              ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getEstadoColor(capa.estado)}`}>
+                            {getEstadoIcon(capa.estado)}
+                            {capa.estado.charAt(0).toUpperCase() + capa.estado.slice(1)}
+                          </span>
+                        </td>
+                        <td className="p-3 text-muted-foreground text-sm">
+                          {capa.fechaActualizacion}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {paginatedCapas.map((capa) => (
+                  <div key={capa.id} className="border rounded-lg overflow-hidden hover:bg-muted/50">
+                    <div className="h-32 bg-muted">
+                      <img 
+                        src={capa.thumbnail} 
+                        alt={capa.nombre}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-3">
+                      <div className="font-medium text-sm mb-1">{capa.nombre}</div>
+                      <span className={`inline-block px-2 py-0.5 rounded text-xs ${getTipoColor(capa.tipo)}`}>
+                        {capa.tipo}
+                      </span>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getEstadoColor(capa.estado)}`}>
                           {getEstadoIcon(capa.estado)}
                           {capa.estado.charAt(0).toUpperCase() + capa.estado.slice(1)}
                         </span>
-                      </td>
-                      <td className="p-4 text-muted-foreground text-sm">
-                        {capa.fechaActualizacion}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => copyToClipboard(capa.url, capa.id)}
+                        >
+                          {copiedId === capa.id ? (
+                            <Check className="h-3.5 w-3.5 text-green-500" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {filteredCapas.length === 0 && (
               <div className="p-8 text-center text-muted-foreground">
@@ -184,7 +260,7 @@ export default function CapasPage() {
             )}
 
             {totalPages > 1 && (
-              <div className="flex items-center justify-between p-4 border-t">
+              <div className="flex items-center justify-between mt-4 pt-4 border-t">
                 <div className="text-sm text-muted-foreground">
                   Mostrando {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredCapas.length)} de {filteredCapas.length} capas
                 </div>
