@@ -1,11 +1,23 @@
-import MapCatastro from "./components/MapCatastro";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import AuthPage from "./pages/AuthPage"
+import MapPage from "./pages/MapPage"
+import DashboardPage from "./pages/DashboardPage"
+import ConfigPage from "./pages/ConfigPage"
+import CapasPage from "./pages/CapasPage"
 
 function App() {
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <MapCatastro />
-    </div>
-  );
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<AuthPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/map" element={<MapPage />} />
+        <Route path="/capas" element={<CapasPage />} />
+        <Route path="/config" element={<ConfigPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  )
 }
 
-export default App;
+export default App
