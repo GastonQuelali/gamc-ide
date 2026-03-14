@@ -8,6 +8,7 @@ import {
   getCurrentUser,
   setCurrentUser,
 } from "./authConfig"
+import { v4 as generateId } from 'uuid'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => getCurrentUser())
@@ -17,7 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const foundUser = findUserByEmail(email)
     if (foundUser && foundUser.password === password) {
       const userData: User = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         name: foundUser.name,
         email: foundUser.email,
       }
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     saveUserToStorage({ name, email, password })
     const userData: User = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name,
       email,
     }

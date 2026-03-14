@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arquitectura de Solución — DAGyC</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070d1a;
+    --surface: #0d1626;
+    --card: #111f35;
+    --border: #1a2d4a;
+    --border2: #243d5c;
+    --green: #00e5a0;
+    --blue: #4da6ff;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --purple: #a78bfa;
+    --cyan: #22d3ee;
+    --text: #dce8f5;
+    --muted: #5a7a9a;
+    --muted2: #3a5a7a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 40% at 10% 20%, rgba(0,229,160,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 90% 80%, rgba(77,166,255,0.05) 0%, transparent 60%),
+      linear-gradient(rgba(0,229,160,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.015) 1px, transparent 1px);
+    background-size: auto, auto, 48px 48px, 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page { position: relative; z-index: 1; }
+
+  /* ── NAV ── */
+  nav {
+    padding: 20px 40px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(7,13,26,0.8);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .nav-brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .nav-dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+  }
+
+  .nav-tab {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    background: transparent;
+    border: none;
+    padding: 7px 16px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nav-tab.active, .nav-tab:hover {
+    background: var(--card);
+    color: var(--text);
+  }
+
+  .nav-tab.active { color: var(--green); }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 64px 40px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+    animation: fadeDown 0.5s ease both;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--green);
+    background: rgba(0,229,160,0.08);
+    border: 1px solid rgba(0,229,160,0.2);
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin-bottom: 16px;
+  }
+
+  h1 .accent { color: var(--green); }
+  h1 .accent2 { color: var(--blue); }
+
+  .hero-sub {
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.7;
+    max-width: 640px;
+    margin-bottom: 36px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--green);
+  }
+
+  .stat-label { font-size: 12px; color: var(--muted); letter-spacing: 0.05em; }
+
+  /* ── SECTION ── */
+  .section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px 64px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 48px;
+    overflow-x: auto;
+  }
+
+  .arch-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 700px;
+  }
+
+  .layer {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .layer-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 0;
+    min-width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 2px solid var(--border2);
+    flex-shrink: 0;
+  }
+
+  .layer-content {
+    flex: 1;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 10px 0;
+  }
+
+  .node {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 12.5px;
+    font-weight: 500;
+    border: 1px solid;
+    white-space: nowrap;
+    transition: transform 0.2s;
+    cursor: default;
+  }
+
+  .node:hover { transform: translateY(-2px); }
+
+  .node-icon { font-size: 16px; }
+
+  .node.green { background: rgba(0,229,160,0.07); border-color: rgba(0,229,160,0.25); color: var(--green); }
+  .node.blue { background: rgba(77,166,255,0.07); border-color: rgba(77,166,255,0.25); color: var(--blue); }
+  .node.amber { background: rgba(251,191,36,0.07); border-color: rgba(251,191,36,0.25); color: var(--amber); }
+  .node.purple { background: rgba(167,139,250,0.07); border-color: rgba(167,139,250,0.25); color: var(--purple); }
+  .node.cyan { background: rgba(34,211,238,0.07); border-color: rgba(34,211,238,0.25); color: var(--cyan); }
+  .node.red { background: rgba(248,113,113,0.07); border-color: rgba(248,113,113,0.25); color: var(--red); }
+
+  /* Connector arrows */
+  .connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 40px;
+    color: var(--muted2);
+    font-size: 18px;
+    position: relative;
+  }
+
+  .connector::before, .connector::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    width: 1px;
+    background: var(--border2);
+  }
+
+  .connector::before { top: 0; bottom: 50%; }
+  .connector::after { top: 50%; bottom: 0; }
+
+  /* ── TECH GRID ── */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .tech-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    transition: all 0.25s;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .tech-card:hover {
+    border-color: var(--border2);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+  }
+
+  .tech-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .tech-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .tech-icon.green { background: rgba(0,229,160,0.1); }
+  .tech-icon.blue { background: rgba(77,166,255,0.1); }
+  .tech-icon.amber { background: rgba(251,191,36,0.1); }
+  .tech-icon.purple { background: rgba(167,139,250,0.1); }
+  .tech-icon.cyan { background: rgba(34,211,238,0.1); }
+  .tech-icon.red { background: rgba(248,113,113,0.1); }
+
+  .tech-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .tech-card-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .tech-items {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tech-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    color: #8baac4;
+    line-height: 1.5;
+  }
+
+  .tech-item .ti-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    min-width: 110px;
+  }
+
+  .tech-item .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .dot.green { background: var(--green); }
+  .dot.blue { background: var(--blue); }
+  .dot.amber { background: var(--amber); }
+  .dot.purple { background: var(--purple); }
+  .dot.cyan { background: var(--cyan); }
+  .dot.red { background: var(--red); }
+
+  /* ── DB DECISION ── */
+  .db-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px;
+    margin-bottom: 48px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .db-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .db-card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    position: relative;
+    transition: all 0.25s;
+  }
+
+  .db-card.recommended {
+    border-color: rgba(0,229,160,0.4);
+    background: rgba(0,229,160,0.04);
+  }
+
+  .db-badge {
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    background: var(--green);
+    color: #070d1a;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+
+  .db-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    margin-top: 8px;
+  }
+
+  .db-card .db-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .db-pros-cons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .pro, .con {
+    font-size: 12.5px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+  }
+
+  .pro { color: #7dd3b8; }
+  .con { color: #94a3b8; }
+
+  .pro::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; }
+  .con::before { content: '·'; color: var(--muted); font-size: 18px; line-height: 1; flex-shrink: 0; }
+
+  /* ── SERVERS ── */
+  .server-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .server-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .server-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .server-icon {
+    font-size: 28px;
+    width: 50px; height: 50px;
+    background: var(--card);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .server-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+  .server-os { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  .server-roles {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .role {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #8baac4;
+  }
+
+  .role-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── SECURITY ── */
+  .security-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+
+  .sec-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    font-size: 13px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .sec-item-icon { font-size: 22px; margin-bottom: 10px; }
+  .sec-item-title { font-weight: 600; margin-bottom: 4px; font-size: 13px; }
+  .sec-item-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── DECISION BOX ── */
+  .decision-box {
+    background: linear-gradient(135deg, rgba(0,229,160,0.06), rgba(77,166,255,0.06));
+    border: 1px solid rgba(0,229,160,0.2);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 48px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .decision-box h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: var(--green);
+  }
+
+  .decision-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .decision-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .decision-table td {
+    padding: 12px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .decision-table tr:last-child td { border-bottom: none; }
+  .decision-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .tag-pill {
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+
+  .tag-pill.green { background: rgba(0,229,160,0.12); color: var(--green); }
+  .tag-pill.blue { background: rgba(77,166,255,0.12); color: var(--blue); }
+  .tag-pill.amber { background: rgba(251,191,36,0.12); color: var(--amber); }
+
+  .code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: rgba(255,255,255,0.05);
+    padding: 2px 7px;
+    border-radius: 5px;
+    color: var(--cyan);
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,229,160,0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(0,229,160,0); }
+  }
+
+  .layer:nth-child(1) { animation-delay: 0.05s; }
+  .layer:nth-child(2) { animation-delay: 0.1s; }
+  .layer:nth-child(3) { animation-delay: 0.15s; }
+  .layer:nth-child(4) { animation-delay: 0.2s; }
+  .layer:nth-child(5) { animation-delay: 0.25s; }
+  .layer:nth-child(6) { animation-delay: 0.3s; }
+  .layer:nth-child(7) { animation-delay: 0.35s; }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .hero, .section { padding-left: 20px; padding-right: 20px; }
+    .db-grid { grid-template-columns: 1fr; }
+    .server-grid { grid-template-columns: 1fr; }
+    .nav-tabs { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-dot"></div>
+    DAGyC · Arquitectura de Solución
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active">Vista General</button>
+    <button class="nav-tab">Base de Datos</button>
+    <button class="nav-tab">Servidores</button>
+    <button class="nav-tab">Seguridad</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">📐 Documento de Arquitectura v1.0</div>
+  <h1>Arquitectura<br><span class="accent">Geoespacial</span> <span class="accent2">Unificada</span></h1>
+  <p class="hero-sub">Diseño de plataforma para 8 proyectos GIS/Catastral con soporte de 500–5000 usuarios simultáneos sobre infraestructura existente Windows Server + Linux + ArcGIS Server.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-val">8</div><div class="stat-label">Proyectos integrados</div></div>
+    <div class="stat"><div class="stat-val">5K</div><div class="stat-label">Usuarios concurrentes</div></div>
+    <div class="stat"><div class="stat-val">3</div><div class="stat-label">Capas de arquitectura</div></div>
+    <div class="stat"><div class="stat-val">99.9%</div><div class="stat-label">Disponibilidad objetivo</div></div>
+  </div>
+</div>
+
+<!-- ARCHITECTURE DIAGRAM -->
+<div class="section">
+  <div class="section-title">Diagrama de Capas</div>
+
+  <div class="arch-diagram">
+    <div class="arch-layers">
+
+      <!-- LAYER 1: Clients -->
+      <div class="layer">
+        <div class="layer-label" style="color: var(--green)">Clientes</div>
+        <div class="layer-content">
+          <div class="node green"><span class="node-icon">🌐</span> Navegador Web</div>
+          <div class="node green"><span class="node-icon">📱</span> App Móvil (iOS/Android)</div>
+          <div class="node green"><span class="node-icon">🖥️</span> Portal Ciudadano</div>
+          <div class="node green"><span class="node-icon">📊</span> Dashboard Ejecutivo</div>
+        </div>
+      </div>
+
+      <!-- ARROW -->
+      <div style="padding: 4px 40px; color: var(--muted2); font-size: 20px; text-align: center;">↕ HTTPS / WSS</div>
+
+      <!-- LAYER 2: Gateway -->
+      <div class="layer">
+        <div class="layer-label" style="color: var(--blue)">Gateway</div>
+        <div class="layer-content">
+          <div class="node blue"><span class="node-icon">🔀</span> NGINX Reverse Proxy</div>
+          <div class="node blue"><span class="node-icon">🔐</span> SSL/TLS Termination</div>
+          <div class="node blue"><span class="node-icon">⚡</span> Load Balancer</div>
+          <div class="node blue"><span class="node-icon">🛡️</span> WAF / Rate Limiting</div>
+        </div>
+      </div>
+
+      <div style="padding: 4px 40px; color: var(--muted2); font-size: 20px; text-align: center;">↕ HTTP interno</div>
+
+      <!-- LAYER 3: Services -->
+      <div class="layer">
+        <div class="layer-label" style="color: var(--amber)">Servicios</div>
+        <div class="layer-content">
+          <div class="node amber"><span class="node-icon">🗺️</span> ArcGIS Server (Feature/Map Services)</div>
+          <div class="node amber"><span class="node-icon">⚙️</span> API REST (FastAPI / Python)</div>
+          <div class="node amber"><span class="node-icon">🔑</span> Auth Service (JWT / OAuth2)</div>
+          <div class="node amber"><span class="node-icon">📬</span> Queue Worker (Celery)</div>
+          <div class="node amber"><span class="node-icon">🤖</span> ML Service (detección cambios)</div>
+        </div>
+      </div>
+
+      <div style="padding: 4px 40px; color: var(--muted2); font-size: 20px; text-align: center;">↕ TCP / ORM</div>
+
+      <!-- LAYER 4: Data -->
+      <div class="layer">
+        <div class="layer-label" style="color: var(--purple)">Datos</div>
+        <div class="layer-content">
+          <div class="node purple"><span class="node-icon">🗄️</span> PostgreSQL + PostGIS (principal)</div>
+          <div class="node purple"><span class="node-icon">🏢</span> SQL Server existente (legacy)</div>
+          <div class="node purple"><span class="node-icon">⚡</span> Redis (caché / sesiones)</div>
+          <div class="node purple"><span class="node-icon">🗂️</span> MinIO (archivos / imágenes)</div>
+          <div class="node purple"><span class="node-icon">📦</span> Message Broker (RabbitMQ)</div>
+        </div>
+      </div>
+
+      <div style="padding: 4px 40px; color: var(--muted2); font-size: 20px; text-align: center;">↕ SDE / JDBC</div>
+
+      <!-- LAYER 5: GIS Platform -->
+      <div class="layer">
+        <div class="layer-label" style="color: var(--cyan)">GIS Core</div>
+        <div class="layer-content">
+          <div class="node cyan"><span class="node-icon">🌍</span> ArcGIS Server (Windows)</div>
+          <div class="node cyan"><span class="node-icon">📡</span> ArcGIS Web Adaptor</div>
+          <div class="node cyan"><span class="node-icon">🐍</span> ArcPy / Geoprocessing</div>
+          <div class="node cyan"><span class="node-icon">🛰️</span> Raster / Image Services</div>
+        </div>
+      </div>
+
+      <div style="padding: 4px 40px; color: var(--muted2); font-size: 20px; text-align: center;">↕ Monitoreo / CI-CD</div>
+
+      <!-- LAYER 6: Infra -->
+      <div class="layer">
+        <div class="layer-label" style="color: var(--red)">Infraestructura</div>
+        <div class="layer-content">
+          <div class="node red"><span class="node-icon">🐋</span> Docker / Docker Compose</div>
+          <div class="node red"><span class="node-icon">📈</span> Prometheus + Grafana</div>
+          <div class="node red"><span class="node-icon">📝</span> ELK Stack (logs)</div>
+          <div class="node red"><span class="node-icon">🔄</span> GitHub Actions (CI/CD)</div>
+          <div class="node red"><span class="node-icon">💾</span> Backup automático</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DB DECISION -->
+  <div class="section-title">Decisión de Base de Datos</div>
+
+  <div class="db-section">
+    <p style="font-size:14px; color: var(--muted); margin-bottom: 24px; line-height: 1.6;">
+      Para una plataforma catastral con datos geoespaciales, relaciones complejas y requerimiento de integridad, la elección es <strong style="color: var(--text)">relacional con extensión geoespacial</strong>. Los datos NoSQL juegan un rol complementario.
+    </p>
+    <div class="db-grid">
+
+      <div class="db-card recommended">
+        <div class="db-badge">✓ Recomendado Principal</div>
+        <h3>PostgreSQL + PostGIS</h3>
+        <div class="db-sub">Motor relacional open source con la mejor extensión geoespacial del mercado. Estándar de la industria GIS.</div>
+        <div class="db-pros-cons">
+          <div class="pro">Soporte nativo de geometrías (puntos, polígonos, líneas)</div>
+          <div class="pro">Consultas espaciales SQL estándar (ST_Within, ST_Intersects…)</div>
+          <div class="pro">Compatible con ArcGIS Server vía SDE</div>
+          <div class="pro">Transacciones ACID — crítico para catastro</div>
+          <div class="pro">Gratuito y sin licencias</div>
+          <div class="con">Requiere DBA para tunning en alta concurrencia</div>
+        </div>
+      </div>
+
+      <div class="db-card">
+        <h3>SQL Server (Existente)</h3>
+        <div class="db-sub">Mantener para datos legados de recaudación e integración con sistemas actuales del municipio.</div>
+        <div class="db-pros-cons">
+          <div class="pro">Ya instalado y licenciado</div>
+          <div class="pro">Integración con sistemas Windows municipales</div>
+          <div class="pro">Soporte espacial con SQL Server Spatial</div>
+          <div class="con">Licencias costosas para escalar</div>
+          <div class="con">Menor soporte GIS vs PostGIS</div>
+          <div class="con">Rol: solo datos de recaudación legacy</div>
+        </div>
+      </div>
+
+      <div class="db-card">
+        <h3>Redis (NoSQL Cache)</h3>
+        <div class="db-sub">No reemplaza el relacional. Se usa como capa de caché y manejo de sesiones para soportar 5K usuarios.</div>
+        <div class="db-pros-cons">
+          <div class="pro">Caché de tiles y respuestas de mapas</div>
+          <div class="pro">Sesiones de usuario en tiempo real</div>
+          <div class="pro">Cola de trabajos async (con Celery)</div>
+          <div class="con">No persiste datos críticos</div>
+          <div class="con">Solo complementario al relacional</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TECH STACK BY LAYER -->
+  <div class="section-title">Stack Tecnológico por Proyecto</div>
+
+  <div class="tech-grid">
+
+    <div class="tech-card">
+      <div class="tech-card-header">
+        <div class="tech-icon green">🗺️</div>
+        <div>
+          <div class="tech-card-title">Visor Catastral</div>
+          <div class="tech-card-sub">Frontend público</div>
+        </div>
+      </div>
+      <div class="tech-items">
+        <div class="tech-item"><div class="dot green"></div><div class="ti-name">ArcGIS JS SDK 4.x</div><div>Mapas interactivos 2D/3D</div></div>
+        <div class="tech-item"><div class="dot green"></div><div class="ti-name">React + Vite</div><div>UI componentes</div></div>
+        <div class="tech-item"><div class="dot green"></div><div class="ti-name">FastAPI</div><div>API búsqueda de parcelas</div></div>
+        <div class="tech-item"><div class="dot green"></div><div class="ti-name">NGINX</div><div>Servidor y proxy</div></div>
+      </div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-header">
+        <div class="tech-icon blue">📊</div>
+        <div>
+          <div class="tech-card-title">Dashboard de Indicadores</div>
+          <div class="tech-card-sub">Panel ejecutivo</div>
+        </div>
+      </div>
+      <div class="tech-items">
+        <div class="tech-item"><div class="dot blue"></div><div class="ti-name">ArcGIS Dashboards</div><div>O React + Recharts</div></div>
+        <div class="tech-item"><div class="dot blue"></div><div class="ti-name">FastAPI</div><div>Endpoints de KPIs</div></div>
+        <div class="tech-item"><div class="dot blue"></div><div class="ti-name">PostgreSQL views</div><div>Agregaciones espaciales</div></div>
+        <div class="tech-item"><div class="dot blue"></div><div class="ti-name">Redis</div><div>Caché de métricas</div></div>
+      </div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-header">
+        <div class="tech-icon amber">📱</div>
+        <div>
+          <div class="tech-card-title">App Móvil de Campo</div>
+          <div class="tech-card-sub">Inspectores offline</div>
+        </div>
+      </div>
+      <div class="tech-items">
+        <div class="tech-item"><div class="dot amber"></div><div class="ti-name">ArcGIS Field Maps</div><div>App nativa Esri (recomendado)</div></div>
+        <div class="tech-item"><div class="dot amber"></div><div class="ti-name">React Native</div><div>Alternativa custom</div></div>
+        <div class="tech-item"><div class="dot amber"></div><div class="ti-name">SQLite local</div><div>Almacenamiento offline</div></div>
+        <div class="tech-item"><div class="dot amber"></div><div class="ti-name">Sync API</div><div>Sincronización diferencial</div></div>
+      </div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-header">
+        <div class="tech-icon purple">🏛️</div>
+        <div>
+          <div class="tech-card-title">Gestión de Trámites</div>
+          <div class="tech-card-sub">Sistema de expedientes</div>
+        </div>
+      </div>
+      <div class="tech-items">
+        <div class="tech-item"><div class="dot purple"></div><div class="ti-name">FastAPI + Python</div><div>Backend principal</div></div>
+        <div class="tech-item"><div class="dot purple"></div><div class="ti-name">React</div><div>Formularios + mapa</div></div>
+        <div class="tech-item"><div class="dot purple"></div><div class="ti-name">PostgreSQL</div><div>Expedientes + geometrías</div></div>
+        <div class="tech-item"><div class="dot purple"></div><div class="ti-name">RabbitMQ + Celery</div><div>Notificaciones async</div></div>
+      </div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-header">
+        <div class="tech-icon cyan">🛰️</div>
+        <div>
+          <div class="tech-card-title">Detección de Cambios</div>
+          <div class="tech-card-sub">ML + Imágenes satelitales</div>
+        </div>
+      </div>
+      <div class="tech-items">
+        <div class="tech-item"><div class="dot cyan"></div><div class="ti-name">Python + GDAL</div><div>Procesamiento raster</div></div>
+        <div class="tech-item"><div class="dot cyan"></div><div class="ti-name">TensorFlow / YOLO</div><div>Detección de cambios</div></div>
+        <div class="tech-item"><div class="dot cyan"></div><div class="ti-name">ArcPy</div><div>Geoprocesos automáticos</div></div>
+        <div class="tech-item"><div class="dot cyan"></div><div class="ti-name">MinIO</div><div>Almacén de imágenes</div></div>
+      </div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-header">
+        <div class="tech-icon red">🌐</div>
+        <div>
+          <div class="tech-card-title">Portal Datos Abiertos</div>
+          <div class="tech-card-sub">Open Data público</div>
+        </div>
+      </div>
+      <div class="tech-items">
+        <div class="tech-item"><div class="dot red"></div><div class="ti-name">ArcGIS Hub / CKAN</div><div>Portal de datos</div></div>
+        <div class="tech-item"><div class="dot red"></div><div class="ti-name">OGC WFS/WMS</div><div>Estándares geoespaciales</div></div>
+        <div class="tech-item"><div class="dot red"></div><div class="ti-name">FastAPI</div><div>API pública documentada</div></div>
+        <div class="tech-item"><div class="dot red"></div><div class="ti-name">Swagger/OpenAPI</div><div>Documentación automática</div></div>
+      </div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-header">
+        <div class="tech-icon amber">💰</div>
+        <div>
+          <div class="tech-card-title">Integración Recaudación</div>
+          <div class="tech-card-sub">Cruce catastro-predial</div>
+        </div>
+      </div>
+      <div class="tech-items">
+        <div class="tech-item"><div class="dot amber"></div><div class="ti-name">Python ETL</div><div>Transformación de datos</div></div>
+        <div class="tech-item"><div class="dot amber"></div><div class="ti-name">SQL Server ↔ PostGIS</div><div>Sincronización bidireccional</div></div>
+        <div class="tech-item"><div class="dot amber"></div><div class="ti-name">Apache Airflow</div><div>Orquestación de pipelines</div></div>
+        <div class="tech-item"><div class="dot amber"></div><div class="ti-name">Celery</div><div>Jobs nocturnos automáticos</div></div>
+      </div>
+    </div>
+
+    <div class="tech-card">
+      <div class="tech-card-header">
+        <div class="tech-icon blue">🏙️</div>
+        <div>
+          <div class="tech-card-title">Gemelo Digital 3D</div>
+          <div class="tech-card-sub">Visualización urbana</div>
+        </div>
+      </div>
+      <div class="tech-items">
+        <div class="tech-item"><div class="dot blue"></div><div class="ti-name">ArcGIS Scene Viewer</div><div>Visualización 3D web</div></div>
+        <div class="tech-item"><div class="dot blue"></div><div class="ti-name">CityEngine</div><div>Generación modelos 3D</div></div>
+        <div class="tech-item"><div class="dot blue"></div><div class="ti-name">I3S / 3D Tiles</div><div>Estándar de escenas</div></div>
+        <div class="tech-item"><div class="dot blue"></div><div class="ti-name">PostgreSQL 3D</div><div>Atributos por edificio</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SERVERS -->
+  <div class="section-title">Distribución de Servidores</div>
+
+  <div class="server-grid">
+
+    <div class="server-card">
+      <div class="server-header">
+        <div class="server-icon">🖥️</div>
+        <div>
+          <div class="server-title">Servidor Windows (Existente)</div>
+          <div class="server-os">Windows Server 2019/2022</div>
+        </div>
+      </div>
+      <div class="server-roles">
+        <div class="role"><div class="role-dot" style="background: var(--cyan)"></div>ArcGIS Server — servicios de mapas y features</div>
+        <div class="role"><div class="role-dot" style="background: var(--cyan)"></div>ArcGIS Web Adaptor (IIS)</div>
+        <div class="role"><div class="role-dot" style="background: var(--amber)"></div>SQL Server — datos legados de recaudación</div>
+        <div class="role"><div class="role-dot" style="background: var(--amber)"></div>ArcPy + Geoprocessing tasks</div>
+        <div class="role"><div class="role-dot" style="background: var(--purple)"></div>CityEngine (Gemelo Digital)</div>
+      </div>
+    </div>
+
+    <div class="server-card">
+      <div class="server-header">
+        <div class="server-icon">🐧</div>
+        <div>
+          <div class="server-title">Servidor Linux (Aplicaciones)</div>
+          <div class="server-os">Ubuntu 22.04 LTS</div>
+        </div>
+      </div>
+      <div class="server-roles">
+        <div class="role"><div class="role-dot" style="background: var(--green)"></div>NGINX — proxy inverso y SSL</div>
+        <div class="role"><div class="role-dot" style="background: var(--green)"></div>FastAPI — backend de todos los servicios</div>
+        <div class="role"><div class="role-dot" style="background: var(--purple)"></div>PostgreSQL + PostGIS — base de datos principal</div>
+        <div class="role"><div class="role-dot" style="background: var(--red)"></div>Redis — caché y sesiones</div>
+        <div class="role"><div class="role-dot" style="background: var(--blue)"></div>Docker Compose — orquestación de servicios</div>
+        <div class="role"><div class="role-dot" style="background: var(--amber)"></div>MinIO — almacén de imágenes/archivos</div>
+        <div class="role"><div class="role-dot" style="background: var(--cyan)"></div>RabbitMQ + Celery — colas de trabajo</div>
+        <div class="role"><div class="role-dot" style="background: var(--red)"></div>Prometheus + Grafana — monitoreo</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECURITY -->
+  <div class="section-title">Seguridad y Acceso</div>
+
+  <div class="security-grid">
+    <div class="sec-item">
+      <div class="sec-item-icon">🔐</div>
+      <div class="sec-item-title">Autenticación</div>
+      <div class="sec-item-desc">JWT + OAuth2. Roles: ciudadano, inspector, admin, ejecutivo</div>
+    </div>
+    <div class="sec-item">
+      <div class="sec-item-icon">🌐</div>
+      <div class="sec-item-title">SSL/TLS</div>
+      <div class="sec-item-desc">HTTPS obligatorio. Certificados Let's Encrypt o institucional</div>
+    </div>
+    <div class="sec-item">
+      <div class="sec-item-icon">🛡️</div>
+      <div class="sec-item-title">WAF</div>
+      <div class="sec-item-desc">NGINX + ModSecurity. Protección contra SQLi, XSS, DoS</div>
+    </div>
+    <div class="sec-item">
+      <div class="sec-item-icon">⏱️</div>
+      <div class="sec-item-title">Rate Limiting</div>
+      <div class="sec-item-desc">100 req/min ciudadano, 1000 req/min interno. Redis backed</div>
+    </div>
+    <div class="sec-item">
+      <div class="sec-item-icon">🗂️</div>
+      <div class="sec-item-title">Datos sensibles</div>
+      <div class="sec-item-desc">Propietarios y valuaciones solo autenticados. Datos públicos anonimizados</div>
+    </div>
+    <div class="sec-item">
+      <div class="sec-item-icon">💾</div>
+      <div class="sec-item-title">Backups</div>
+      <div class="sec-item-desc">PostgreSQL: backup diario automático. SQL Server: política existente</div>
+    </div>
+  </div>
+
+  <!-- DECISION TABLE -->
+  <div class="section-title">Resumen de Decisiones Clave</div>
+
+  <div class="decision-box">
+    <h3>⚡ Decisiones Arquitectónicas Finales</h3>
+    <table class="decision-table">
+      <thead>
+        <tr>
+          <th>Decisión</th>
+          <th>Elección</th>
+          <th>Alternativa descartada</th>
+          <th>Razón</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Base de datos principal</td>
+          <td><span class="tag-pill green">PostgreSQL + PostGIS</span></td>
+          <td><span class="tag-pill amber">MongoDB</span></td>
+          <td>Soporte geoespacial nativo, ACID, integración ArcGIS</td>
+        </tr>
+        <tr>
+          <td>Backend API</td>
+          <td><span class="tag-pill green">FastAPI (Python)</span></td>
+          <td><span class="tag-pill amber">Node.js / .NET</span></td>
+          <td>Ecosistema GIS/ML en Python, ArcPy compatible</td>
+        </tr>
+        <tr>
+          <td>Contenerización</td>
+          <td><span class="tag-pill green">Docker Compose</span></td>
+          <td><span class="tag-pill amber">Kubernetes</span></td>
+          <td>Escala adecuada, menor complejidad operativa</td>
+        </tr>
+        <tr>
+          <td>Frontend</td>
+          <td><span class="tag-pill green">React + ArcGIS SDK</span></td>
+          <td><span class="tag-pill amber">Angular / Vue</span></td>
+          <td>Comunidad, componentes ArcGIS nativos para React</td>
+        </tr>
+        <tr>
+          <td>App móvil campo</td>
+          <td><span class="tag-pill green">ArcGIS Field Maps</span></td>
+          <td><span class="tag-pill amber">React Native custom</span></td>
+          <td>Offline nativo, sincronización Esri sin desarrollo</td>
+        </tr>
+        <tr>
+          <td>Proxy / Web server</td>
+          <td><span class="tag-pill green">NGINX</span></td>
+          <td><span class="tag-pill amber">Apache</span></td>
+          <td>Performance, reverse proxy, WAF con ModSecurity</td>
+        </tr>
+        <tr>
+          <td>Datos SQL Server existente</td>
+          <td><span class="tag-pill blue">Mantener (legacy)</span></td>
+          <td><span class="tag-pill amber">Migrar todo</span></td>
+          <td>Minimizar riesgo, integrar vía ETL con Airflow</td>
+        </tr>
+        <tr>
+          <td>Caché</td>
+          <td><span class="tag-pill green">Redis</span></td>
+          <td><span class="tag-pill amber">Memcached</span></td>
+          <td>Soporta sesiones, colas (Celery), pub/sub</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</div>
+</body>
+</html>

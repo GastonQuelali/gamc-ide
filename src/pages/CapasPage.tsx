@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
+import { useClipboard } from "@/hooks/useClipboard"
 
 interface Capa {
   id: number
@@ -39,8 +40,19 @@ export default function CapasPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterEstado, setFilterEstado] = useState("all")
   const [filterTipo, setFilterTipo] = useState("all")
-  const [copiedId, setCopiedId] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<"list" | "grid">("list")
+
+  // 👇 USA EL HOOK - ELIMINA la variable copiedId anterior
+  const { copy, copiedId } = useClipboard({
+    onSuccess: () => {
+      // Opcional: puedes agregar un console.log o cualquier acción
+      console.log('¡URL copiada exitosamente!')
+    },
+    onError: (error) => {
+      console.error('Error al copiar:', error)
+    },
+    timeout: 2000 // 2 segundos (opcional, es el valor por defecto)
+  })
 
   const filteredCapas = capas.filter(capa => {
     const matchesSearch = capa.nombre.toLowerCase().includes(searchTerm.toLowerCase())
@@ -52,12 +64,6 @@ export default function CapasPage() {
   const totalPages = Math.ceil(filteredCapas.length / ITEMS_PER_PAGE)
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
   const paginatedCapas = filteredCapas.slice(startIndex, startIndex + ITEMS_PER_PAGE)
-
-  const copyToClipboard = (url: string, id: number) => {
-    navigator.clipboard.writeText(url)
-    setCopiedId(id)
-    setTimeout(() => setCopiedId(null), 2000)
-  }
 
   const getEstadoColor = (estado: string) => {
     switch (estado) {
@@ -189,7 +195,7 @@ export default function CapasPage() {
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7 flex-shrink-0"
-                              onClick={() => copyToClipboard(capa.url, capa.id)}
+                              onClick={() => copy(capa.url, capa.id)}
                             >
                               {copiedId === capa.id ? (
                                 <Check className="h-3.5 w-3.5 text-green-500" />
@@ -238,7 +244,7 @@ export default function CapasPage() {
                           variant="ghost"
                           size="icon"
                           className="h-7 w-7"
-                          onClick={() => copyToClipboard(capa.url, capa.id)}
+                          onClick={() => copy(capa.url, capa.id)}
                         >
                           {copiedId === capa.id ? (
                             <Check className="h-3.5 w-3.5 text-green-500" />
