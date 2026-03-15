@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Map, LayoutDashboard, Settings, LogOut, Menu, X, ChevronLeft, Layers } from "lucide-react"
+import { Map, LayoutDashboard, Settings, LogOut, Menu, X, ChevronLeft, Layers, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import { useTheme } from "@/hooks/useTheme"
@@ -14,6 +14,7 @@ const navItems = [
   { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/map", label: "Mapa", icon: Map },
   { path: "/capas", label: "Capas", icon: Layers },
+  { path: "/admin/capas", label: "Admin Capas", icon: Shield },
   { path: "/config", label: "Configuración", icon: Settings },
 ]
 

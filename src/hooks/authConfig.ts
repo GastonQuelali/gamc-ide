@@ -2,13 +2,14 @@ interface User {
   id: string
   name: string
   email: string
+  role?: string
 }
 
 interface AuthContextType {
   user: User | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<boolean>
-  register: (name: string, email: string, password: string) => Promise<boolean>
+  register?: (name: string, email: string, password: string) => Promise<boolean>
   logout: () => void
 }
 
