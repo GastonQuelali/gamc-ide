@@ -6,6 +6,7 @@ import TramitesPage from "./pages/TramitesPage"
 import ConfigPage from "./pages/ConfigPage"
 import CapasPage from "./pages/CapasPage"
 import AdminCapasPage from "./pages/AdminCapasPage"
+import ProfilePage from "./pages/ProfilePage"
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/capas" element={<CapasPage />} />
         <Route path="/admin/capas" element={<AdminCapasPage />} />
         <Route path="/config" element={<ConfigPage />} />
+        <Route path="/perfil" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
