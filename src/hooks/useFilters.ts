@@ -30,7 +30,6 @@ export function useFilters<T>({
   data,
   filters,
   initialValues = {},
-  onFilterChange
 }: UseFiltersOptions<T>): UseFiltersReturn<T> {
   const defaultValues = filters.reduce((acc, filter) => {
     acc[filter.key] = initialValues[filter.key] ?? (filter.type === "search" ? "" : "all")
