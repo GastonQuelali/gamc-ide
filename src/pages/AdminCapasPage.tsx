@@ -8,6 +8,8 @@ import { Select } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { capasApi, type CapaGIS, type CapaArcGIS, type CapaGISUpdate } from "@/lib/api"
+import { usePagination } from "@/hooks/usePagination"
+import { useFilters, type FilterConfig } from "@/hooks/useFilters"
 
 export default function AdminCapasPage() {
   const [capas, setCapas] = useState<CapaGIS[]>([])
@@ -15,13 +17,6 @@ export default function AdminCapasPage() {
   const [loading, setLoading] = useState(true)
   const [importing, setImporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(50)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterEstado, setFilterEstado] = useState("all")
-  const [filterActiva, setFilterActiva] = useState("all")
-  const [filterPublica, setFilterPublica] = useState("all")
-  const [filterTipo, setFilterTipo] = useState("all")
   const [copiedId, setCopiedId] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<"list" | "grid">("list")
   const [selectedCapa, setSelectedCapa] = useState<CapaGIS | null>(null)
@@ -29,6 +24,37 @@ export default function AdminCapasPage() {
   const [editData, setEditData] = useState<CapaGISUpdate>({})
   const [saving, setSaving] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
+
+  const filterConfigs: FilterConfig[] = [
+    { key: "search", type: "search", label: "Buscar" },
+    { key: "filterEstado", type: "select", label: "Estado" },
+    { key: "filterActiva", type: "select", label: "Activa" },
+    { key: "filterPublica", type: "select", label: "Pública" },
+    { key: "filterTipo", type: "select", label: "Tipo" },
+  ]
+
+  const { filterValues, setFilter, filteredData } = useFilters<CapaGIS>({
+    data: capas,
+    filters: filterConfigs,
+  })
+
+  const searchTerm = String(filterValues.search || "")
+  const filterEstado = String(filterValues.filterEstado || "all")
+  const filterActiva = String(filterValues.filterActiva || "all")
+  const filterPublica = String(filterValues.filterPublica || "all")
+  const filterTipo = String(filterValues.filterTipo || "all")
+
+  const {
+    paginatedItems: paginatedCapas,
+    currentPage,
+    totalPages,
+    startIndex,
+    setPage,
+    setItemsPerPage,
+    itemsPerPage,
+    canGoNext,
+    canGoPrev,
+  } = usePagination(filteredData, { initialItemsPerPage: 50 })
 
   useEffect(() => {
     loadCapas()
@@ -94,26 +120,6 @@ export default function AdminCapasPage() {
       setSaving(false)
     }
   }
-
-  const filteredCapas = capas.filter(capa => {
-    const matchesSearch = capa.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesTipo = filterTipo === "all" || capa.tipo_servicio === filterTipo
-    const matchesEstado = filterEstado === "all" || 
-      (filterEstado === "online" && capa.activa && capa.publica) ||
-      (filterEstado === "offline" && !capa.activa) ||
-      (filterEstado === "mantenimiento" && capa.activa && !capa.publica)
-    const matchesActiva = filterActiva === "all" || 
-      (filterActiva === "yes" && capa.activa) ||
-      (filterActiva === "no" && !capa.activa)
-    const matchesPublica = filterPublica === "all" || 
-      (filterPublica === "yes" && capa.publica) ||
-      (filterPublica === "no" && !capa.publica)
-    return matchesSearch && matchesTipo && matchesEstado && matchesActiva && matchesPublica
-  })
-
-  const totalPages = Math.ceil(filteredCapas.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedCapas = filteredCapas.slice(startIndex, startIndex + itemsPerPage)
 
   const copyToClipboard = (url: string, id: number) => {
     navigator.clipboard.writeText(url)
@@ -196,27 +202,27 @@ export default function AdminCapasPage() {
                 <Input
                   placeholder="Buscar capa..."
                   value={searchTerm}
-                  onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1) }}
+                  onChange={(e) => { setFilter("search", e.target.value) }}
                   className="pl-9"
                 />
               </div>
-              <Select value={filterEstado} onValueChange={(v) => { setFilterEstado(v); setCurrentPage(1) }}>
+              <Select value={filterEstado} onValueChange={(v) => setFilter("filterEstado", v)}>
                 <option value="all">Estado: Todos</option>
                 <option value="online">Estado: Online</option>
                 <option value="offline">Estado: Offline</option>
                 <option value="mantenimiento">Estado: En revisión</option>
               </Select>
-              <Select value={filterActiva} onValueChange={(v) => { setFilterActiva(v); setCurrentPage(1) }}>
+              <Select value={filterActiva} onValueChange={(v) => setFilter("filterActiva", v)}>
                 <option value="all">Activa: Todas</option>
                 <option value="yes">Activa: Sí</option>
                 <option value="no">Activa: No</option>
               </Select>
-              <Select value={filterPublica} onValueChange={(v) => { setFilterPublica(v); setCurrentPage(1) }}>
+              <Select value={filterPublica} onValueChange={(v) => setFilter("filterPublica", v)}>
                 <option value="all">Pública: Todas</option>
                 <option value="yes">Pública: Sí</option>
                 <option value="no">Pública: No</option>
               </Select>
-              <Select value={filterTipo} onValueChange={(v) => { setFilterTipo(v); setCurrentPage(1) }}>
+              <Select value={filterTipo} onValueChange={(v) => setFilter("filterTipo", v)}>
                 <option value="all">Tipo: Todos</option>
                 <option value="Feature Layer">Feature Layer</option>
                 <option value="Map Image">Map Image</option>
@@ -241,7 +247,7 @@ export default function AdminCapasPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">Mostrar:</span>
-                  <Select value={String(itemsPerPage)} onValueChange={(v) => { setItemsPerPage(Number(v)); setCurrentPage(1) }}>
+                  <Select value={String(itemsPerPage)} onValueChange={(v) => setItemsPerPage(Number(v))}>
                     <option value="5">5</option>
                     <option value="10">10</option>
                     <option value="20">20</option>
@@ -251,7 +257,7 @@ export default function AdminCapasPage() {
                 </div>
               </div>
               <span className="text-sm text-muted-foreground">
-                {filteredCapas.length} capas encontradas
+                {filteredData.length} capas encontradas
               </span>
             </div>
 
@@ -396,7 +402,7 @@ export default function AdminCapasPage() {
               </div>
             )}
 
-            {filteredCapas.length === 0 && !loading && (
+            {filteredData.length === 0 && !loading && (
               <div className="p-8 text-center text-muted-foreground">
                 No se encontraron capas con los filtros seleccionados
               </div>
@@ -405,14 +411,14 @@ export default function AdminCapasPage() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between mt-4 pt-4 border-t">
                 <div className="text-sm text-muted-foreground">
-                  Mostrando {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredCapas.length)} de {filteredCapas.length} capas
+                  Mostrando {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredData.length)} de {filteredData.length} capas
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Anterior</Button>
+                  <Button variant="outline" size="sm" disabled={!canGoPrev} onClick={() => setPage(currentPage - 1)}>Anterior</Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <Button key={page} variant={currentPage === page ? "default" : "ghost"} size="sm" className="w-8" onClick={() => setCurrentPage(page)}>{page}</Button>
+                    <Button key={page} variant={currentPage === page ? "default" : "ghost"} size="sm" className="w-8" onClick={() => setPage(page)}>{page}</Button>
                   ))}
-                  <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Siguiente</Button>
+                  <Button variant="outline" size="sm" disabled={!canGoNext} onClick={() => setPage(currentPage + 1)}>Siguiente</Button>
                 </div>
               </div>
             )}

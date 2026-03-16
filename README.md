@@ -1,73 +1,99 @@
-# React + TypeScript + Vite
+# GAMC-IDE
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Sistema de Información Geográfica Catastral para la Gobierno Autónomo Municipal de Cercado (Cochabamba, Bolivia).
 
-Currently, two official plugins are available:
+## 🚀 Características
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Autenticación**: Login con usuario y contraseña
+- **Dashboard**: Indicadores, gráficos y tablas con datos estadísticos
+- **Mapa Interactivo**: Visor de mapas catastrales con ArcGIS
+- **Gestión de Capas**: Catálogo de capas GIS públicas
+- **Administración de Capas**: Panel de admin para gestionar capas
+- **Configuración**: Perfil de usuario y preferencias
 
-## React Compiler
+## 🛠️ Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend**: React 18 + TypeScript + Vite
+- **Estilos**: Tailwind CSS v4 + shadcn/ui
+- **Mapas**: ArcGIS Maps SDK for JavaScript
+- **Gráficos**: Recharts
+- **Backend**: FastAPI (Python)
 
-## Expanding the ESLint configuration
+## 📁 Estructura del Proyecto
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+├── components/           # Componentes React
+│   ├── ui/              # Componentes shadcn/ui
+│   ├── MapCatastro.tsx  # Componente del mapa
+│   ├── MeasurementTools.tsx
+│   └── Sidebar.tsx      # Navegación lateral
+├── pages/                # Páginas de la aplicación
+│   ├── AuthPage.tsx     # Login
+│   ├── DashboardPage.tsx
+│   ├── MapPage.tsx
+│   ├── CapasPage.tsx
+│   ├── AdminCapasPage.tsx
+│   └── ConfigPage.tsx
+├── hooks/                # Custom hooks
+├── lib/                  # Utilidades y API
+├── config/               # Configuraciones
+├── types/                # Tipos TypeScript
+└── utils/                # Utilidades
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 📖 Documentación
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- [Arquitectura](./docs/arquitectura.md)
+- [API](./docs/api.md)
+- [Componentes](./docs/componentes.md)
+- [Guía de Uso](./docs/guia-usuario.md)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🏃‍♂️ Iniciar Desarrollo
+
+```bash
+# Instalar dependencias
+npm install
+
+# Iniciar servidor de desarrollo
+npm run dev
 ```
+
+El servidor estará disponible en `http://localhost:5173`
+
+## 🔧 Configuración
+
+### Proxy de API
+
+El proyecto usa un proxy en Vite para conectar con el backend:
+
+```typescript
+// vite.config.ts
+server: {
+  proxy: {
+    '/api': {
+      target: 'http://localhost:8000',
+      changeOrigin: true,
+    }
+  }
+}
+```
+
+## 📱 Rutas
+
+| Ruta | Descripción |
+|------|-------------|
+| `/` | Login / Autenticación |
+| `/dashboard` | Dashboard con estadísticas |
+| `/map` | Visor de mapas |
+| `/capas` | Catálogo de capas |
+| `/admin/capas` | Administración de capas |
+| `/config` | Configuración y perfil |
+
+## 🏛️ GAMC
+
+Gobierno Autónomo Municipal de Cercado - Cochabamba, Bolivia
+
+## 📄 Licencia
+
+Privado - GAMC
