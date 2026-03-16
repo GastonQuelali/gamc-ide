@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import axios from "axios"
 import { tramitesApi } from "@/lib/tramitesApi"
-import type { Tramite, TramitesResponse, TramitesParams, TramiteFiltros } from "@/types/tramites"
+import type { Tramite, TramitesParams, TramiteFiltros, TramiteResumen } from "@/types/tramites"
 
 interface UseTramitesReturn {
   tramites: Tramite[]
@@ -10,9 +10,10 @@ interface UseTramitesReturn {
   pagina: number
   filtros: TramitesParams
   filtrosDisponibles: TramiteFiltros | null
+  resumen: TramiteResumen | null
   loading: boolean
   error: string | null
-  setFiltros: (f: TramitesParams) => void
+  setFiltros: (f: Partial<TramitesParams>) => void
   setPagina: (p: number) => void
   limpiarFiltros: () => void
 }
@@ -31,7 +32,8 @@ export function useTramites(): UseTramitesReturn {
   const [paginas, setPaginas] = useState(0)
   const [pagina, setPagina] = useState(1)
   const [filtrosDisponibles, setFiltrosDisponibles] = useState<TramiteFiltros | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [resumen, setResumen] = useState<TramiteResumen | null>(null)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -41,18 +43,23 @@ export function useTramites(): UseTramitesReturn {
       setLoading(true)
       
       try {
-        const [filtrosData, tramitesData]: [TramiteFiltros, TramitesResponse] = await Promise.all([
-          tramitesApi.getFiltros(filtros.gestion),
+        const [tablaResponse, resumenResponse]: [any, TramiteResumen] = await Promise.all([
           tramitesApi.getTramites(filtros),
+          tramitesApi.getResumen(filtros),
         ])
 
         if (!mounted) return
 
-        setFiltrosDisponibles(filtrosData)
-        setTramites(tramitesData.tramites)
-        setTotal(tramitesData.total)
-        setPaginas(tramitesData.paginas)
-        setPagina(tramitesData.pagina)
+        setTramites(tablaResponse.tramites)
+        setTotal(tablaResponse.total)
+        setPaginas(tablaResponse.paginas)
+        setPagina(tablaResponse.pagina)
+        setResumen(resumenResponse)
+
+        if (!filtrosDisponibles) {
+          const filtrosData = await tramitesApi.getFiltros(filtros.gestion)
+          setFiltrosDisponibles(filtrosData)
+        }
       } catch (err) {
         if (!mounted) return
 
@@ -86,27 +93,27 @@ export function useTramites(): UseTramitesReturn {
     return () => {
       mounted = false
     }
-  }, [filtros.gestion, filtros.mes, filtros.tipo, filtros.comuna, filtros.estado, filtros.q, filtros.pagina, filtros.por_pagina])
+  }, [filtros])
 
-  const handleSetFiltros = (nuevosFiltros: Partial<TramitesParams>) => {
+  const handleSetFiltros = useCallback((nuevosFiltros: Partial<TramitesParams>) => {
     setFiltros(prev => ({
       ...prev,
       ...nuevosFiltros,
       pagina: nuevosFiltros.pagina ?? 1,
     }))
-  }
+  }, [])
 
-  const handleSetPagina = (p: number) => {
+  const handleSetPagina = useCallback((p: number) => {
     setFiltros(prev => ({ ...prev, pagina: p }))
-  }
+  }, [])
 
-  const handleLimpiarFiltros = () => {
+  const handleLimpiarFiltros = useCallback(() => {
     setFiltros({
       gestion: currentYear,
       pagina: 1,
       por_pagina: 20,
     })
-  }
+  }, [currentYear])
 
   return {
     tramites,
@@ -115,6 +122,7 @@ export function useTramites(): UseTramitesReturn {
     pagina,
     filtros,
     filtrosDisponibles,
+    resumen,
     loading,
     error,
     setFiltros: handleSetFiltros,

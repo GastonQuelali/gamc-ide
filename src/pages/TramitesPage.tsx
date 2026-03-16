@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { useEffect, useRef } from "react"
 import { ArrowLeft, AlertCircle } from "lucide-react"
 import { useTramites } from "@/hooks/useTramites"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
@@ -14,6 +15,8 @@ import type { UserRole } from "@/types/kpi"
 
 function TramitesPageContent() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const initialized = useRef(false)
 
   const {
     tramites,
@@ -22,12 +25,26 @@ function TramitesPageContent() {
     pagina,
     filtros,
     filtrosDisponibles,
+    resumen,
     loading,
     error,
     setFiltros,
     setPagina,
     limpiarFiltros,
   } = useTramites()
+
+  useEffect(() => {
+    if (initialized.current) return
+    initialized.current = true
+
+    const gestion = Number(searchParams.get("gestion")) || new Date().getFullYear()
+    const mes = searchParams.get("mes") ? Number(searchParams.get("mes")) : undefined
+    const tipo = searchParams.get("tipo") || undefined
+    const comuna = searchParams.get("comuna") || undefined
+    const estado = searchParams.get("estado") as "en_tramite" | "concluido" || undefined
+
+    setFiltros({ gestion, mes, tipo, comuna, estado })
+  }, [])
 
   const handleTipoClick = (newTipo: string) => {
     setFiltros({ tipo: newTipo })
@@ -94,7 +111,7 @@ function TramitesPageContent() {
               <CardTitle className="text-lg">Por tipo</CardTitle>
             </CardHeader>
             <CardContent>
-              <GraficoTiposTramites tramites={tramites} onTipoClick={handleTipoClick} />
+              <GraficoTiposTramites resumen={resumen} onTipoClick={handleTipoClick} />
             </CardContent>
           </Card>
           <Card>
@@ -102,7 +119,7 @@ function TramitesPageContent() {
               <CardTitle className="text-lg">Por comuna</CardTitle>
             </CardHeader>
             <CardContent>
-              <GraficoComunasTramites tramites={tramites} onComunaClick={handleComunaClick} />
+              <GraficoComunasTramites resumen={resumen} onComunaClick={handleComunaClick} />
             </CardContent>
           </Card>
         </div>

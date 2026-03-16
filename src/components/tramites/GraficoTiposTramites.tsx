@@ -1,9 +1,10 @@
 import { useMemo } from "react"
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts"
-import type { Tramite } from "@/types/tramites"
+import type { TramiteResumen } from "@/types/tramites"
 
 interface GraficoTiposTramitesProps {
-  tramites: Tramite[]
+  resumen: TramiteResumen | null
+  loading?: boolean
   onTipoClick: (tipo: string) => void
 }
 
@@ -22,17 +23,11 @@ const truncateText = (text: string, maxLength: number = 30): string => {
   return cleaned.slice(0, maxLength - 3) + "..."
 }
 
-export function GraficoTiposTramites({ tramites, onTipoClick }: GraficoTiposTramitesProps) {
+export function GraficoTiposTramites({ resumen, onTipoClick }: GraficoTiposTramitesProps) {
   const distribucion = useMemo(() => {
-    const map = new Map<string, number>()
-    tramites.forEach((t) => {
-      const tipo = t.tramitetipo || "Sin tipo"
-      map.set(tipo, (map.get(tipo) || 0) + 1)
-    })
-    return Array.from(map.entries())
-      .map(([tipo, total]) => ({ tipo, total }))
-      .sort((a, b) => b.total - a.total)
-  }, [tramites])
+    if (!resumen?.por_tipo) return []
+    return [...resumen.por_tipo].sort((a, b) => b.total - a.total)
+  }, [resumen])
 
   if (distribucion.length === 0) {
     return (

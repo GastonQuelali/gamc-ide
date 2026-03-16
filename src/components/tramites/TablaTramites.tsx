@@ -22,6 +22,12 @@ const formatNum = (n: number | null): string => {
   return n.toLocaleString("es-BO")
 }
 
+const formatNroTramite = (nroTramite: number, gestion: number): string => {
+  const str = String(nroTramite)
+  const numStr = str.slice(-6).padStart(6, "0")
+  return `${numStr} / ${gestion}`
+}
+
 export function TablaTramites({ tramites, loading }: TablaTramitesProps) {
   const [expandedRow, setExpandedRow] = useState<number | null>(null)
 
@@ -81,7 +87,7 @@ export function TablaTramites({ tramites, loading }: TablaTramitesProps) {
                     )}
                   </td>
                   <td className="p-3 font-mono text-sm">
-                    {formatNum(tramite.nroTramite)}
+                    {formatNroTramite(tramite.nroTramite, tramite.gestion)}
                   </td>
                   <td className="p-3 text-sm max-w-[200px] truncate" title={tramite.tramitetipo || ""}>
                     {tramite.tramitetipo?.replace(/\r\n/g, " ").trim() || "—"}

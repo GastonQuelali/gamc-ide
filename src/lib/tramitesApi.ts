@@ -1,5 +1,5 @@
 import axios from "axios"
-import type { TramiteFiltros, TramitesResponse, TramitesParams } from "@/types/tramites"
+import type { TramiteFiltros, TramitesResponse, TramitesParams, TramiteResumen } from "@/types/tramites"
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api/v1"
 
@@ -34,6 +34,17 @@ tramitesClient.interceptors.response.use(
   }
 )
 
+const buildFiltersParams = (params: TramitesParams) => {
+  const searchParams = new URLSearchParams()
+  if (params.gestion) searchParams.append("gestion", String(params.gestion))
+  if (params.mes) searchParams.append("mes", String(params.mes))
+  if (params.tipo) searchParams.append("tipo", params.tipo)
+  if (params.comuna) searchParams.append("comuna", params.comuna)
+  if (params.estado) searchParams.append("estado", params.estado)
+  if (params.q) searchParams.append("q", params.q)
+  return searchParams.toString()
+}
+
 export const tramitesApi = {
   getFiltros: async (gestion?: number): Promise<TramiteFiltros> => {
     const params = new URLSearchParams()
@@ -54,6 +65,12 @@ export const tramitesApi = {
     if (params.por_pagina) searchParams.append("por_pagina", String(params.por_pagina))
     
     const response = await tramitesClient.get<TramitesResponse>(`/tramites/?${searchParams}`)
+    return response.data
+  },
+
+  getResumen: async (params: TramitesParams = {}): Promise<TramiteResumen> => {
+    const queryString = buildFiltersParams(params)
+    const response = await tramitesClient.get<TramiteResumen>(`/tramites/resumen?${queryString}`)
     return response.data
   },
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { X, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -28,16 +28,21 @@ const MESES = [
 
 export function FiltrosTramites({ filtros, filtrosDisponibles, onFilterChange, onLimpiar }: FiltrosTramitesProps) {
   const [searchTerm, setSearchTerm] = useState(filtros.q || "")
+  const initialized = useRef(false)
   
   const currentYear = useMemo(() => new Date().getFullYear(), [])
   const years = useMemo(() => Array.from({ length: currentYear - 2019 }, (_, i) => currentYear - i), [currentYear])
 
   useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true
+      return
+    }
+    
     const timer = setTimeout(() => {
-      if (searchTerm.length >= 3 || searchTerm === "") {
-        if (searchTerm !== filtros.q) {
-          onFilterChange({ q: searchTerm || undefined })
-        }
+      const newQ = searchTerm || undefined
+      if (newQ !== filtros.q) {
+        onFilterChange({ q: newQ })
       }
     }, 500)
     return () => clearTimeout(timer)

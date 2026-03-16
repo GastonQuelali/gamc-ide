@@ -31,6 +31,12 @@ export interface TramitesResponse {
   tramites: Tramite[]
 }
 
+export interface TramiteResumen {
+  por_tipo: { tipo: string; total: number }[]
+  por_comuna: { comuna: string; total: number }[]
+  total: number
+}
+
 export interface TramitesParams {
   gestion?: number
   mes?: number

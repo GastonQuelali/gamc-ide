@@ -1,9 +1,9 @@
 import { useMemo } from "react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from "recharts"
-import type { Tramite } from "@/types/tramites"
+import type { TramiteResumen } from "@/types/tramites"
 
 interface GraficoComunasTramitesProps {
-  tramites: Tramite[]
+  resumen: TramiteResumen | null
   onComunaClick: (comuna: string) => void
 }
 
@@ -16,18 +16,13 @@ const COLORES = [
   "#06B6D4",
 ]
 
-export function GraficoComunasTramites({ tramites, onComunaClick }: GraficoComunasTramitesProps) {
+export function GraficoComunasTramites({ resumen, onComunaClick }: GraficoComunasTramitesProps) {
   const distribucion = useMemo(() => {
-    const map = new Map<string, number>()
-    tramites.forEach((t) => {
-      const comuna = t.comuna || "Sin comuna"
-      map.set(comuna, (map.get(comuna) || 0) + 1)
-    })
-    return Array.from(map.entries())
-      .map(([comuna, total]) => ({ comuna, total }))
+    if (!resumen?.por_comuna) return []
+    return [...resumen.por_comuna]
       .sort((a, b) => b.total - a.total)
       .slice(0, 7)
-  }, [tramites])
+  }, [resumen])
 
   const dataConColores = distribucion.map((item, index) => ({
     ...item,
