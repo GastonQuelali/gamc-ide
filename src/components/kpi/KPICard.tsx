@@ -7,8 +7,9 @@ interface KPICardProps {
   titulo: string
   valor: number
   comparacion?: number
+  sufijo?: string
   icon: LucideIcon
-  variant?: "default" | "warning" | "success"
+  variant?: "default" | "warning" | "success" | "destructive"
   loading?: boolean
   onClick?: () => void
 }
@@ -17,7 +18,7 @@ const formatNumber = (n: number): string => {
   return n.toLocaleString("es-BO")
 }
 
-export function KPICard({ titulo, valor, comparacion, icon: Icon, variant = "default", loading, onClick }: KPICardProps) {
+export function KPICard({ titulo, valor, comparacion, sufijo, icon: Icon, variant = "default", loading, onClick }: KPICardProps) {
   if (loading) {
     return (
       <Card>
@@ -40,6 +41,8 @@ export function KPICard({ titulo, valor, comparacion, icon: Icon, variant = "def
         return "bg-yellow-50 dark:bg-yellow-950 text-yellow-700 dark:text-yellow-300"
       case "success":
         return "bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300"
+      case "destructive":
+        return "bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300"
       default:
         return "bg-muted"
     }
@@ -51,6 +54,8 @@ export function KPICard({ titulo, valor, comparacion, icon: Icon, variant = "def
         return "text-yellow-600 dark:text-yellow-400"
       case "success":
         return "text-green-600 dark:text-green-400"
+      case "destructive":
+        return "text-red-600 dark:text-red-400"
       default:
         return "text-primary"
     }
@@ -79,7 +84,10 @@ export function KPICard({ titulo, valor, comparacion, icon: Icon, variant = "def
           </div>
           <div className="flex-1">
             <p className="text-sm text-muted-foreground">{titulo}</p>
-            <p className="text-2xl font-bold">{formatNumber(valor)}</p>
+            <p className="text-2xl font-bold">
+              {variant === "destructive" || variant === "success" || variant === "warning" ? formatNumber(valor) : formatNumber(valor)}
+              {sufijo && <span className="text-lg font-normal ml-1">{sufijo}</span>}
+            </p>
             {comparacion !== undefined && (
               <div className={cn("flex items-center gap-1 text-xs", getTrendColor())}>
                 {getTrendIcon()}

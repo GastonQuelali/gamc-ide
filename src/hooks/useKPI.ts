@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react"
 import axios from "axios"
 import { kpiApi } from "@/lib/kpiApi"
-import type { KPIResumen, KPIPorMes, KPIPorTipo, KPIPorComuna, KPIEvolucion, KPIFilters } from "@/types/kpi"
+import type { KPIResumen, KPIPorMes, KPIPorTipo, KPIPorComuna, KPIEvolucion, KPIFilters, KPITiempoResolucion, KPITasaConclusion, KPIEnMora } from "@/types/kpi"
 
 interface UseKPIReturn {
   resumen: KPIResumen | null
@@ -9,6 +9,9 @@ interface UseKPIReturn {
   porTipo: KPIPorTipo[]
   porComuna: KPIPorComuna[]
   evolucionAnual: KPIEvolucion[]
+  tiempoResolucion: KPITiempoResolucion[]
+  tasaConclusion: KPITasaConclusion[]
+  enMora: KPIEnMora | null
   loading: boolean
   error: string | null
   filtros: KPIFilters
@@ -31,6 +34,9 @@ export function useKPI(): UseKPIReturn {
   const [porTipo, setPorTipo] = useState<KPIPorTipo[]>([])
   const [porComuna, setPorComuna] = useState<KPIPorComuna[]>([])
   const [evolucionAnual, setEvolucionAnual] = useState<KPIEvolucion[]>([])
+  const [tiempoResolucion, setTiempoResolucion] = useState<KPITiempoResolucion[]>([])
+  const [tasaConclusion, setTasaConclusion] = useState<KPITasaConclusion[]>([])
+  const [enMora, setEnMora] = useState<KPIEnMora | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -39,12 +45,15 @@ export function useKPI(): UseKPIReturn {
     setError(null)
 
     try {
-      const [resumenData, porMesData, porTipoData, porComunaData, evolucionData] = await Promise.all([
+      const [resumenData, porMesData, porTipoData, porComunaData, evolucionData, tiempoResolucionData, tasaConclusionData, enMoraData] = await Promise.all([
         kpiApi.getResumen(),
         kpiApi.getPorMes(filtros.gestion, filtros.limite),
         kpiApi.getPorTipo(filtros.gestion, filtros.limite),
         kpiApi.getPorComuna(filtros.gestion, filtros.limite),
         kpiApi.getEvolucionAnual(filtros.anios),
+        kpiApi.getTiempoResolucion(filtros.gestion, filtros.limite),
+        kpiApi.getTasaConclusion(filtros.gestion),
+        kpiApi.getEnMora(filtros.gestion),
       ])
 
       setResumen(resumenData)
@@ -52,6 +61,9 @@ export function useKPI(): UseKPIReturn {
       setPorTipo(porTipoData)
       setPorComuna(porComunaData)
       setEvolucionAnual(evolucionData)
+      setTiempoResolucion(tiempoResolucionData)
+      setTasaConclusion(tasaConclusionData)
+      setEnMora(enMoraData)
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {
@@ -101,6 +113,9 @@ export function useKPI(): UseKPIReturn {
     porTipo,
     porComuna,
     evolucionAnual,
+    tiempoResolucion,
+    tasaConclusion,
+    enMora,
     loading,
     error,
     filtros,

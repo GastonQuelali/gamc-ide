@@ -1,5 +1,5 @@
 import axios from "axios"
-import type { KPIResumen, KPIPorMes, KPIPorTipo, KPIPorComuna, KPIEvolucion } from "@/types/kpi"
+import type { KPIResumen, KPIPorMes, KPIPorTipo, KPIPorComuna, KPIEvolucion, KPITiempoResolucion, KPITasaConclusion, KPIEnMora } from "@/types/kpi"
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api/v1"
 
@@ -73,6 +73,28 @@ export const kpiApi = {
 
   invalidarCache: async (): Promise<void> => {
     const response = await kpiClient.post("/kpi/cache/invalidar")
+    return response.data
+  },
+
+  getTiempoResolucion: async (gestion?: number, limite?: number): Promise<KPITiempoResolucion[]> => {
+    const params = new URLSearchParams()
+    if (gestion) params.append("gestion", String(gestion))
+    if (limite) params.append("limite", String(limite))
+    const response = await kpiClient.get<KPITiempoResolucion[]>(`/kpi/tiempo-resolucion?${params}`)
+    return response.data
+  },
+
+  getTasaConclusion: async (gestion?: number): Promise<KPITasaConclusion[]> => {
+    const params = new URLSearchParams()
+    if (gestion) params.append("gestion", String(gestion))
+    const response = await kpiClient.get<KPITasaConclusion[]>(`/kpi/tasa-conclusion?${params}`)
+    return response.data
+  },
+
+  getEnMora: async (gestion?: number): Promise<KPIEnMora> => {
+    const params = new URLSearchParams()
+    if (gestion) params.append("gestion", String(gestion))
+    const response = await kpiClient.get<KPIEnMora>(`/kpi/en-mora?${params}`)
     return response.data
   },
 }
