@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
-import { FileText, Calendar, Clock, CheckCircle, RefreshCw, AlertCircle, BarChart3, Timer } from "lucide-react"
+import { FileText, Calendar, Clock, CheckCircle, RefreshCw, AlertCircle, BarChart3, Timer, Users } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { useKPI } from "@/hooks/useKPI"
 import { ProtectedRoute } from "@/components/ProtectedRoute"
@@ -16,13 +16,14 @@ import { GraficoEvolucion } from "@/components/kpi/GraficoEvolucion"
 import { GraficoTasaConclusion } from "@/components/kpi/GraficoTasaConclusion"
 import { GraficoTiempoResolucion } from "@/components/kpi/GraficoTiempoResolucion"
 import { GraficoEnMora } from "@/components/kpi/GraficoEnMora"
+import { TabRendimiento } from "@/components/dashboard/TabRendimiento"
 import type { UserRole } from "@/types/kpi"
 import type { KPIPorMes, KPIPorTipo, KPIPorComuna } from "@/types/kpi"
 
 const currentYear = new Date().getFullYear()
 const years = Array.from({ length: currentYear - 2019 }, (_, i) => currentYear - i)
 
-type TabType = 'volumen' | 'eficiencia'
+type TabType = 'volumen' | 'eficiencia' | 'rendimiento'
 
 function DashboardContent() {
   const navigate = useNavigate()
@@ -185,9 +186,24 @@ function DashboardContent() {
             <Timer className="h-4 w-4" />
             Eficiencia Operativa
           </button>
+          {(user?.role === 'admin' || user?.role === 'supervisor') && (
+            <button
+              onClick={() => setActiveTab('rendimiento')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeTab === 'rendimiento'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              <Users className="h-4 w-4" />
+              Rendimiento
+            </button>
+          )}
         </div>
 
-        {activeTab === 'volumen' ? (
+        {activeTab === 'rendimiento' ? (
+          <TabRendimiento />
+        ) : activeTab === 'volumen' ? (
           <>
             {/* KPI Cards Volumen */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
