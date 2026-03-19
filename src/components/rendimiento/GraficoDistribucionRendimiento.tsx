@@ -1,14 +1,13 @@
 import { useMemo } from "react"
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CHART_COLORS_ARRAY } from "@/lib/colors"
 import type { RendimientoResumen } from "@/types/rendimiento"
 
 interface GraficoDistribucionRendimientoProps {
   resumen: RendimientoResumen | null
   loading: boolean
 }
-
-const COLORS = ["#10B981", "#F59E0B", "#EF4444"]
 
 export function GraficoDistribucionRendimiento({ resumen, loading }: GraficoDistribucionRendimientoProps) {
   const chartData = useMemo(() => {
@@ -75,7 +74,7 @@ export function GraficoDistribucionRendimiento({ resumen, loading }: GraficoDist
               labelLine={false}
             >
               {chartData.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={`cell-${index}`} fill={CHART_COLORS_ARRAY[index % CHART_COLORS_ARRAY.length]} />
               ))}
             </Pie>
             <Tooltip

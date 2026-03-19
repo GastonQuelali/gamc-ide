@@ -42,54 +42,62 @@ export function useRendimiento(): UseRendimientoReturn {
   const [exportando, setExportando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchFiltros = useCallback(async () => {
-    try {
-      const data = await rendimientoApi.getFiltros()
-      setFiltrosDisponibles(data)
-    } catch (err) {
-      console.error("Error fetching filtros:", err)
-    }
+  const fetchFiltros = useCallback(() => {
+    const controller = new AbortController()
+    rendimientoApi.getFiltros({ signal: controller.signal })
+      .then((data) => setFiltrosDisponibles(data))
+      .catch((err) => {
+        if (err.name !== "CanceledError") console.error("Error fetching filtros:", err)
+      })
+    return () => controller.abort()
   }, [])
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(() => {
+    const controller = new AbortController()
+
     setLoadingResumen(true)
     setLoadingFuncionarios(true)
     setLoadingPendientes(true)
     setError(null)
 
-    try {
-      const [resumenRes, funcionariosRes, rankingRes, pendientesRes] = await Promise.all([
-        rendimientoApi.getResumen(params),
-        rendimientoApi.getPorFuncionario(params),
-        rendimientoApi.getRanking(params, 10),
-        rendimientoApi.getPendientesVencidos(params),
-      ])
-
-      setResumen(resumenRes)
-      setPorFuncionario(funcionariosRes)
-      setRanking(rankingRes)
-      setPendientes(pendientesRes)
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) {
-          setError("Sesión expirada. Redirigiendo...")
-          setTimeout(() => {
-            localStorage.removeItem("gamc_token")
-            localStorage.removeItem("gamc_current_user")
-            window.location.href = "/"
-          }, 2000)
-        } else {
-          setError("Error al cargar datos de rendimiento")
+    Promise.all([
+      rendimientoApi.getResumen(params, { signal: controller.signal }),
+      rendimientoApi.getPorFuncionario(params, { signal: controller.signal }),
+      rendimientoApi.getRanking(params, 10, { signal: controller.signal }),
+      rendimientoApi.getPendientesVencidos(params, { signal: controller.signal }),
+    ])
+      .then(([resumenRes, funcionariosRes, rankingRes, pendientesRes]) => {
+        setResumen(resumenRes)
+        setPorFuncionario(funcionariosRes)
+        setRanking(rankingRes)
+        setPendientes(pendientesRes)
+      })
+      .catch((err) => {
+        if (err.name !== "CanceledError") {
+          if (axios.isAxiosError(err)) {
+            if (err.response?.status === 401) {
+              setError("Sesión expirada. Redirigiendo...")
+              setTimeout(() => {
+                localStorage.removeItem("gamc_token")
+                localStorage.removeItem("gamc_current_user")
+                window.location.href = "/"
+              }, 2000)
+            } else {
+              setError("Error al cargar datos de rendimiento")
+            }
+          } else {
+            setError("Error desconocido")
+          }
+          console.error("Rendimiento Error:", err)
         }
-      } else {
-        setError("Error desconocido")
-      }
-      console.error("Rendimiento Error:", err)
-    } finally {
-      setLoadingResumen(false)
-      setLoadingFuncionarios(false)
-      setLoadingPendientes(false)
-    }
+      })
+      .finally(() => {
+        setLoadingResumen(false)
+        setLoadingFuncionarios(false)
+        setLoadingPendientes(false)
+      })
+
+    return () => controller.abort()
   }, [params])
 
   useEffect(() => {

@@ -1,15 +1,13 @@
 import { useState, useMemo } from "react"
 import { AlertTriangle, ArrowDown, ArrowUp } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { SkeletonTable } from "@/components/ui/skeleton-table"
+import { toTitleCase } from "@/lib/formatters"
 import type { FuncionarioRendimiento } from "@/types/rendimiento"
 
 interface TablaFuncionariosRendimientoProps {
   data: FuncionarioRendimiento[]
   loading: boolean
-}
-
-const toTitleCase = (str: string): string => {
-  return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
 type SortKey = "despachados" | "pendientes" | "vencidos" | "tasa"
@@ -78,11 +76,7 @@ export function TablaFuncionariosRendimiento({ data, loading }: TablaFuncionario
           <CardTitle className="text-lg">Todos los Funcionarios</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="h-12 bg-muted animate-pulse rounded" />
-            ))}
-          </div>
+          <SkeletonTable rows={8} />
         </CardContent>
       </Card>
     )

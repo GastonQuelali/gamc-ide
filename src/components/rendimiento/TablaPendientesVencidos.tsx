@@ -2,15 +2,13 @@ import { useState, useMemo } from "react"
 import { AlertCircle, Clock, Search } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { SkeletonTable } from "@/components/ui/skeleton-table"
+import { toTitleCase } from "@/lib/formatters"
 import type { TramitePendiente } from "@/types/rendimiento"
 
 interface TablaPendientesVencidosProps {
   data: TramitePendiente[]
   loading: boolean
-}
-
-const toTitleCase = (str: string): string => {
-  return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
 const formatFecha = (iso: string | null): string => {
@@ -50,11 +48,7 @@ export function TablaPendientesVencidos({ data, loading }: TablaPendientesVencid
           <CardTitle className="text-lg">Trámites Pendientes y Vencidos</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-12 bg-muted animate-pulse rounded" />
-            ))}
-          </div>
+          <SkeletonTable rows={5} />
         </CardContent>
       </Card>
     )

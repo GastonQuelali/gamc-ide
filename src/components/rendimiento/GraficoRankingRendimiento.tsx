@@ -1,21 +1,14 @@
 import { useMemo } from "react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CHART_COLORS } from "@/lib/colors"
+import { toTitleCase, truncateText } from "@/lib/formatters"
 import type { FuncionarioRanking } from "@/types/rendimiento"
 
 interface GraficoRankingRendimientoProps {
   data: FuncionarioRanking[]
   loading: boolean
   periodoLabel?: string
-}
-
-const toTitleCase = (str: string): string => {
-  return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
-}
-
-const truncateText = (text: string, maxLength: number = 25): string => {
-  if (text.length <= maxLength) return text
-  return text.slice(0, maxLength - 1) + "…"
 }
 
 const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: FuncionarioRanking }> }) => {
@@ -92,9 +85,9 @@ export function GraficoRankingRendimiento({ data, loading, periodoLabel = "" }: 
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
-            <Bar dataKey="despachados" stackId="a" fill="#10B981" name="Despachados" />
-            <Bar dataKey="pendientes" stackId="a" fill="#F59E0B" name="Pendientes" />
-            <Bar dataKey="vencidos" stackId="a" fill="#EF4444" name="Vencidos" />
+            <Bar dataKey="despachados" stackId="a" fill={CHART_COLORS.success} name="Despachados" />
+            <Bar dataKey="pendientes" stackId="a" fill={CHART_COLORS.warning} name="Pendientes" />
+            <Bar dataKey="vencidos" stackId="a" fill={CHART_COLORS.danger} name="Vencidos" />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

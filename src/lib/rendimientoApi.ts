@@ -45,31 +45,33 @@ const buildParams = (params: RendimientoParams) => {
   return searchParams.toString()
 }
 
+type RequestSignal = { signal?: AbortSignal }
+
 export const rendimientoApi = {
-  getResumen: async (params: RendimientoParams): Promise<RendimientoResumen> => {
-    const response = await rendimientoClient.get<RendimientoResumen>(`/rendimiento/resumen?${buildParams(params)}`)
+  getResumen: async (params: RendimientoParams, options?: RequestSignal): Promise<RendimientoResumen> => {
+    const response = await rendimientoClient.get<RendimientoResumen>(`/rendimiento/resumen?${buildParams(params)}`, options)
     return response.data
   },
 
-  getPorFuncionario: async (params: RendimientoParams): Promise<FuncionarioRendimiento[]> => {
-    const response = await rendimientoClient.get<FuncionarioRendimiento[]>(`/rendimiento/por-funcionario?${buildParams(params)}`)
+  getPorFuncionario: async (params: RendimientoParams, options?: RequestSignal): Promise<FuncionarioRendimiento[]> => {
+    const response = await rendimientoClient.get<FuncionarioRendimiento[]>(`/rendimiento/por-funcionario?${buildParams(params)}`, options)
     return response.data
   },
 
-  getRanking: async (params: RendimientoParams, limite: number = 10): Promise<FuncionarioRanking[]> => {
+  getRanking: async (params: RendimientoParams, limite: number = 10, options?: RequestSignal): Promise<FuncionarioRanking[]> => {
     const searchParams = new URLSearchParams(buildParams(params))
     searchParams.append("limite", String(limite))
-    const response = await rendimientoClient.get<FuncionarioRanking[]>(`/rendimiento/ranking?${searchParams}`)
+    const response = await rendimientoClient.get<FuncionarioRanking[]>(`/rendimiento/ranking?${searchParams}`, options)
     return response.data
   },
 
-  getPendientesVencidos: async (params: RendimientoParams): Promise<TramitePendiente[]> => {
-    const response = await rendimientoClient.get<TramitePendiente[]>(`/rendimiento/pendientes-vencidos?${buildParams(params)}`)
+  getPendientesVencidos: async (params: RendimientoParams, options?: RequestSignal): Promise<TramitePendiente[]> => {
+    const response = await rendimientoClient.get<TramitePendiente[]>(`/rendimiento/pendientes-vencidos?${buildParams(params)}`, options)
     return response.data
   },
 
-  getFiltros: async (): Promise<RendimientoFiltrosDisponibles> => {
-    const response = await rendimientoClient.get<RendimientoFiltrosDisponibles>("/rendimiento/filtros")
+  getFiltros: async (options?: RequestSignal): Promise<RendimientoFiltrosDisponibles> => {
+    const response = await rendimientoClient.get<RendimientoFiltrosDisponibles>("/rendimiento/filtros", options)
     return response.data
   },
 

@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { Download, Loader2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { RendimientoParams, RendimientoFiltrosDisponibles, Periodo } from "@/types/rendimiento"
@@ -11,9 +12,6 @@ interface SelectorPeriodoRendimientoProps {
   onExportar: () => void
   exportando: boolean
 }
-
-const currentYear = new Date().getFullYear()
-const years = Array.from({ length: currentYear - 2019 + 1 }, (_, i) => currentYear - i)
 
 const MESES = [
   { value: 1, label: "Enero" },
@@ -30,6 +28,13 @@ const MESES = [
   { value: 12, label: "Diciembre" },
 ]
 
+const PERIODO_LABELS: Record<Periodo, string> = {
+  dia: "Hoy",
+  semana: "Esta semana",
+  mes: "Este mes",
+  gestion: "Gestión",
+}
+
 export function SelectorPeriodoRendimiento({
   params,
   filtrosDisponibles,
@@ -39,6 +44,12 @@ export function SelectorPeriodoRendimiento({
   onExportar,
   exportando,
 }: SelectorPeriodoRendimientoProps) {
+  const currentYear = new Date().getFullYear()
+
+  const years = useMemo(() => {
+    return Array.from({ length: currentYear - 2019 + 1 }, (_, i) => currentYear - i)
+  }, [currentYear])
+
   const periodo = params.periodo
 
   const renderDateSelector = () => {
@@ -106,13 +117,6 @@ export function SelectorPeriodoRendimiento({
     )
   }
 
-  const periodoLabel: Record<Periodo, string> = {
-    dia: "Hoy",
-    semana: "Esta semana",
-    mes: "Este mes",
-    gestion: "Gestión",
-  }
-
   return (
     <div className="flex flex-wrap items-center gap-4 mb-6">
       <div className="flex gap-1">
@@ -126,7 +130,7 @@ export function SelectorPeriodoRendimiento({
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
             }`}
           >
-            {periodoLabel[p]}
+            {PERIODO_LABELS[p]}
           </button>
         ))}
       </div>

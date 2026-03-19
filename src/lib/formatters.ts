@@ -41,11 +41,6 @@ export const formatRelativeTime = (date: string | Date | null | undefined): stri
   return formatDate(d)
 }
 
-export const truncateText = (text: string, maxLength: number): string => {
-  if (!text || text.length <= maxLength) return text
-  return text.slice(0, maxLength - 3) + "..."
-}
-
 export const capitalize = (text: string): string => {
   if (!text) return ""
   return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
@@ -78,4 +73,14 @@ export const formatBoolean = (value: boolean | null | undefined, trueText = "Sí
 export const formatOpacity = (value: number | null | undefined): string => {
   if (value === null || value === undefined) return "100%"
   return `${Math.round(value * 100)}%`
+}
+
+export const truncateText = (text: string, maxLength: number): string => {
+  if (!text || text.length <= maxLength) return text
+  return text.slice(0, maxLength - 3) + "..."
+}
+
+export const toTitleCase = (str: string): string => {
+  if (!str) return ""
+  return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
 }
