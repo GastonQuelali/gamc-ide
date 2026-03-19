@@ -13,6 +13,11 @@ interface TablaFuncionariosRendimientoProps {
 type SortKey = "despachados" | "pendientes" | "vencidos" | "tasa"
 type SortDirection = "asc" | "desc"
 
+function SortIcon({ active, direction }: { active: boolean; direction: SortDirection }) {
+  if (!active) return null
+  return direction === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />
+}
+
 export function TablaFuncionariosRendimiento({ data, loading }: TablaFuncionariosRendimientoProps) {
   const [sortKey, setSortKey] = useState<SortKey>("despachados")
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
@@ -62,11 +67,6 @@ export function TablaFuncionariosRendimiento({ data, loading }: TablaFuncionario
   const calculateTasa = (item: FuncionarioRendimiento): number => {
     const total = item.despachados + item.pendientes
     return total > 0 ? Math.round(item.despachados / total * 1000) / 10 : 0
-  }
-
-  const SortIcon = ({ active, direction }: { active: boolean; direction: SortDirection }) => {
-    if (!active) return null
-    return direction === "asc" ? <ArrowUp className="h-3 w-3 ml-1" /> : <ArrowDown className="h-3 w-3 ml-1" />
   }
 
   if (loading) {
