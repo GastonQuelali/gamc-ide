@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Map } from "lucide-react"
+import { Map, Eye, EyeOff } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -20,6 +19,7 @@ export default function AuthPage() {
   const { login } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
   const [loginData, setLoginData] = useState({
     username: "",
@@ -80,38 +80,36 @@ export default function AuthPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                required
-                value={loginData.password}
-                onChange={(e) =>
-                  setLoginData({ ...loginData, password: e.target.value })
-                }
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  required
+                  value={loginData.password}
+                  onChange={(e) =>
+                    setLoginData({ ...loginData, password: e.target.value })
+                  }
+                  className="pr-10 font-sans [&::-ms-reveal]:hidden [&::-webkit-credentials-auto-fill-button]:hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <div className="relative w-full">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Ejemplo de acceso
-              </span>
-            </div>
-          </div>
-          <div className="text-sm text-muted-foreground text-center p-3 bg-muted rounded-md">
-            <p><strong>Usuario:</strong> gquelali</p>
-            <p><strong>Contraseña:</strong> temporal.1</p>
-          </div>
-        </CardFooter>
       </Card>
     </div>
   )
