@@ -13,9 +13,11 @@ interface SidebarProps {
 const navItems = [
   { path: "/dashboard", label: "Indicadores", icon: LayoutDashboard },
   { path: "/tramites", label: "Trámites", icon: FileText },
-  { path: "/map", label: "Mapa", icon: Map },
+  { path: "/map", label: "Visor GIS", icon: Map },
+  { path: "/mapa/bienes-view", label: "Bienes Municipales", icon: Map, indent: true },
   { path: "/capas", label: "Capas", icon: Layers },
-  { path: "/admin/capas", label: "Admin Capas", icon: Shield },
+  { path: "/admin/mapas", label: "Mapas Temáticos", icon: Map, admin: true },
+  { path: "/admin/capas", label: "Admin Capas", icon: Shield, admin: true },
   { path: "/perfil", label: "Mi Perfil", icon: User },
   { path: "/config", label: "Configuración", icon: Settings },
 ]
@@ -26,6 +28,13 @@ export default function Sidebar({ children }: SidebarProps) {
   const { theme, toggleTheme } = useTheme()
   const [isOpen, setIsOpen] = useState(true)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+
+  const isAdmin = user?.role === "admin" || user?.role === "supervisor"
+
+  const filteredNavItems = navItems.filter((item) => {
+    if (item.admin && !isAdmin) return false
+    return true
+  })
 
   const handleLogout = () => {
     logout()
@@ -67,8 +76,8 @@ export default function Sidebar({ children }: SidebarProps) {
         </div>
 
         <nav className="flex-1 p-2 space-y-1">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path
+          {filteredNavItems.map((item) => {
+            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + "/")
             return (
               <Link
                 key={item.path}
@@ -79,7 +88,8 @@ export default function Sidebar({ children }: SidebarProps) {
                   isActive
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  !isOpen && "justify-center"
+                  !isOpen && "justify-center",
+                  item.indent && isOpen && "pl-10"
                 )}
                 title={!isOpen ? item.label : undefined}
               >

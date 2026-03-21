@@ -1,3 +1,5 @@
+import type { TemaMapa, MapaConfig, CapaAsignada } from "@/types/mapa.types"
+
 const API_BASE_URL = "/api/v1"
 
 const getToken = (): string | null => {
@@ -170,6 +172,117 @@ export const capasApi = {
     })
     if (!response.ok) {
       throw new Error("Failed to assign roles")
+    }
+  },
+}
+
+export const catalogoApi = {
+  getMapas: async (): Promise<TemaMapa[]> => {
+    const response = await fetch(`${API_BASE_URL}/catalogo/mapas`)
+    if (!response.ok) {
+      throw new Error("Failed to fetch mapas")
+    }
+    return response.json()
+  },
+
+  getMapaConfig: async (slug: string): Promise<MapaConfig> => {
+    const response = await fetch(`${API_BASE_URL}/catalogo/mapa/${slug}`)
+    if (!response.ok) {
+      throw new Error("Failed to fetch mapa config")
+    }
+    return response.json()
+  },
+}
+
+export const mapasAdminApi = {
+  getAll: async (): Promise<TemaMapa[]> => {
+    const response = await fetch(`${API_BASE_URL}/catalogo/mapas`)
+    if (!response.ok) {
+      throw new Error("Failed to fetch mapas")
+    }
+    return response.json()
+  },
+
+  getBySlug: async (slug: string): Promise<MapaConfig> => {
+    const response = await fetch(`${API_BASE_URL}/catalogo/mapa/${slug}`)
+    if (!response.ok) {
+      throw new Error("Failed to fetch mapa")
+    }
+    return response.json()
+  },
+
+  getCapasDisponibles: async (): Promise<CapaGIS[]> => {
+    const response = await fetch(`${API_BASE_URL}/capas/admin/capas`, {
+      headers: headers(),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to fetch capas disponibles")
+    }
+    return response.json()
+  },
+
+  getCapasAsignadas: async (_mapaId: number): Promise<CapaAsignada[]> => {
+    const response = await fetch(`${API_BASE_URL}/capas/admin/capas`)
+    if (!response.ok) {
+      throw new Error("Failed to fetch capas asignadas")
+    }
+    const capas: CapaGIS[] = await response.json()
+    return capas.filter(c => c.activa).map((c, index) => ({
+      id: c.id,
+      capa_id: c.id,
+      nombre: c.nombre,
+      url_servicio: c.url_servicio,
+      tipo: c.tipo || "feature",
+      grupo: c.grupo,
+      orden: index + 1,
+      visible: c.visible,
+      opacidad: c.opacity,
+    }))
+  },
+
+  asignarCapas: async (mapaId: number, _data: unknown): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/capas/admin/capas/${mapaId}/roles`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ roles: ["admin", "supervisor", "inspector"], visible: true, editable: false }),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to save capas assignment")
+    }
+  },
+
+  create: async (data: Partial<TemaMapa>): Promise<TemaMapa> => {
+    const response = await fetch(`${API_BASE_URL}/admin/mapas`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to create mapa")
+    }
+    return response.json()
+  },
+
+  update: async (id: number, data: Partial<TemaMapa>): Promise<TemaMapa> => {
+    const response = await fetch(`${API_BASE_URL}/admin/mapas/${id}`, {
+      method: "PUT",
+      headers: headers(),
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to update mapa")
+    }
+    return response.json()
+  },
+
+  toggleActivo: async (id: number, activo: boolean): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/admin/mapas/${id}/toggle`, {
+      method: "PATCH",
+      headers: headers(),
+      body: JSON.stringify({ activo }),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to toggle mapa")
     }
   },
 }
