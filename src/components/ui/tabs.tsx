@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
+type TabsProps = React.HTMLAttributes<HTMLDivElement> & {
   value?: string
   onValueChange?: (value: string) => void
   defaultValue?: string
@@ -39,7 +39,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
 )
 Tabs.displayName = "Tabs"
 
-interface TabsListProps extends React.HTMLAttributes<HTMLDivElement> {
+type TabsListProps = React.HTMLAttributes<HTMLDivElement> & {
   activeValue?: string
   onValueChange?: (value: string) => void
 }
@@ -58,7 +58,7 @@ const TabsList = React.forwardRef<HTMLDivElement, TabsListProps>(
 )
 TabsList.displayName = "TabsList"
 
-interface TabsTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+type TabsTriggerProps = Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'value'> & {
   value: string
   activeValue?: string
   onValueChange?: (value: string) => void
@@ -83,7 +83,7 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
 )
 TabsTrigger.displayName = "TabsTrigger"
 
-interface TabsContentProps extends React.HTMLAttributes<HTMLDivElement> {
+type TabsContentProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'value'> & {
   value: string
   activeValue?: string
 }

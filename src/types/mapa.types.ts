@@ -19,7 +19,7 @@ export interface PopupConfig {
 
 export interface CapaGis {
   id_relacion: number
-  nombre_amigable: string
+  nombre_en_mapa: string
   nombre_tecnico_servicio: string
   url: string
   tipo: "dynamic" | "feature" | "tiled"

@@ -20,6 +20,7 @@ const getInitials = (nombre: string): string => {
 
 export function AvatarUpload({ avatarUrl, nombre, uploading, onUpload }: AvatarUploadProps) {
   const [preview, setPreview] = useState<string | null>(null)
+  const [imageError, setImageError] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -52,6 +53,7 @@ export function AvatarUpload({ avatarUrl, nombre, uploading, onUpload }: AvatarU
     const reader = new FileReader()
     reader.onload = (event) => {
       setPreview(event.target?.result as string)
+      setImageError(false)
     }
     reader.readAsDataURL(file)
 
@@ -65,7 +67,15 @@ export function AvatarUpload({ avatarUrl, nombre, uploading, onUpload }: AvatarU
     inputRef.current?.click()
   }
 
-  const displayUrl = preview || avatarUrl
+  const handleImageError = () => {
+    setImageError(true)
+  }
+
+  const handleImageLoad = () => {
+    setImageError(false)
+  }
+
+  const displayUrl = preview || (avatarUrl && !imageError ? avatarUrl : null)
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -75,6 +85,8 @@ export function AvatarUpload({ avatarUrl, nombre, uploading, onUpload }: AvatarU
             src={displayUrl}
             alt="Avatar"
             className="w-32 h-32 rounded-full object-cover border-4 border-muted"
+            onError={handleImageError}
+            onLoad={handleImageLoad}
           />
         ) : (
           <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center border-4 border-muted">

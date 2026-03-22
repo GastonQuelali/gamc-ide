@@ -2,7 +2,6 @@ import { useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import MapCatastro from "@/components/MapCatastro"
 import { useAuth } from "@/hooks/useAuth"
-import Sidebar from "@/components/Sidebar"
 
 export default function MapPage() {
   const navigate = useNavigate()
@@ -23,10 +22,8 @@ export default function MapPage() {
   }
 
   return (
-    <Sidebar>
-      <div className="h-[calc(100vh-57px)]">
-        <MapCatastro height="100%" />
-      </div>
-    </Sidebar>
+    <div className="h-[calc(100vh-57px)]">
+      <MapCatastro height="100%" />
+    </div>
   )
 }

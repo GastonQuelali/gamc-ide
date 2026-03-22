@@ -9,11 +9,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => getCurrentUser())
   const [isLoading, setIsLoading] = useState(false)
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<boolean> => {
     setIsLoading(true)
     try {
       const response: TokenResponse = await authApi.login({
-        nombre: email,
+        nombre: username,
         clave: password,
       })
       
@@ -22,18 +22,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData: User = {
         id: response.usuario.persona_id,
         name: response.usuario.nombre,
-        email: response.usuario.email || email,
+        email: response.usuario.email || username,
         role: response.usuario.rol,
       }
       
       setUser(userData)
       setCurrentUser(userData)
+      setIsLoading(false)
       return true
     } catch {
       console.error("Login failed")
-      return false
-    } finally {
       setIsLoading(false)
+      return false
     }
   }
 

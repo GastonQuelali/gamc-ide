@@ -72,7 +72,7 @@ export function MapCanvas({ config, loading, error }: MapCanvasProps) {
             setLoading(false)
           }
         }).catch((err) => {
-          console.error(`Error loading layer ${capaGis.nombre_amigable}:`, err)
+          console.error(`Error loading layer ${capaGis.nombre_en_mapa}:`, err)
           loadedCount++
           if (loadedCount === totalCapas) {
             setLoading(false)

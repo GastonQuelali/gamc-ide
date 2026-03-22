@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Map, Eye, EyeOff } from "lucide-react"
+import { Shield, Eye, EyeOff } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,11 @@ import {
 } from "@/components/ui/card"
 import { useAuth } from "@/hooks/useAuth"
 
-export default function AuthPage() {
+interface AdminAuthPageProps {
+  onBackToStorefront?: () => void
+}
+
+export default function AdminAuthPage({ onBackToStorefront }: AdminAuthPageProps) {
   const navigate = useNavigate()
   const { login } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
@@ -35,7 +39,7 @@ export default function AuthPage() {
     
     setIsLoading(false)
     if (success) {
-      navigate("/dashboard")
+      navigate("/admin/dashboard")
     } else {
       setError("Usuario o contraseña incorrectos")
     }
@@ -47,14 +51,14 @@ export default function AuthPage() {
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <div className="flex items-center gap-2 p-2 bg-primary rounded-lg">
-              <Map className="h-8 w-8 text-primary-foreground" />
+              <Shield className="h-8 w-8 text-primary-foreground" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">
-            GAMC-IDE
+            GAMC-IDE - Backoffice
           </CardTitle>
           <CardDescription>
-            Sistema de Información Geográfica Catastral
+            Panel de Administración
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -109,6 +113,18 @@ export default function AuthPage() {
               {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
             </Button>
           </form>
+
+          {onBackToStorefront && (
+            <div className="mt-4 text-center">
+              <Button
+                variant="link"
+                onClick={onBackToStorefront}
+                className="text-sm text-muted-foreground"
+              >
+                ← Volver al Storefront
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

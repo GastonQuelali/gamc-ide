@@ -8,7 +8,7 @@ import type { CapaGis } from "@/types/mapa.types"
 export function createCapaGis(capa: CapaGis): Layer | null {
   const baseProps = {
     id: String(capa.id_relacion),
-    title: capa.nombre_amigable,
+    title: capa.nombre_en_mapa,
     visible: capa.visible_inicial,
     opacity: capa.opacidad,
   }
@@ -37,7 +37,7 @@ export function createCapaGis(capa: CapaGis): Layer | null {
       })
 
     default:
-      console.warn(`Unknown layer tipo: ${capa.tipo} for capa ${capa.nombre_amigable}`)
+      console.warn(`Unknown layer tipo: ${capa.tipo} for capa ${capa.nombre_en_mapa}`)
       return null
   }
 }

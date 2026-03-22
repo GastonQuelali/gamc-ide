@@ -36,7 +36,7 @@ kpiClient.interceptors.response.use(
 
 export const kpiApi = {
   getResumen: async (): Promise<KPIResumen> => {
-    const response = await kpiClient.get<KPIResumen>("/kpi/resumen")
+    const response = await kpiClient.get<KPIResumen>("/admin/kpi/resumen")
     return response.data
   },
 
@@ -44,7 +44,7 @@ export const kpiApi = {
     const params = new URLSearchParams()
     if (gestion) params.append("gestion", String(gestion))
     if (limite) params.append("limite", String(limite))
-    const response = await kpiClient.get<KPIPorMes[]>(`/kpi/por-mes?${params}`)
+    const response = await kpiClient.get<KPIPorMes[]>(`/admin/kpi/por-mes?${params}`)
     return response.data
   },
 
@@ -52,7 +52,7 @@ export const kpiApi = {
     const params = new URLSearchParams()
     if (gestion) params.append("gestion", String(gestion))
     if (limite) params.append("limite", String(limite))
-    const response = await kpiClient.get<KPIPorTipo[]>(`/kpi/por-tipo?${params}`)
+    const response = await kpiClient.get<KPIPorTipo[]>(`/admin/kpi/por-tipo?${params}`)
     return response.data
   },
 
@@ -60,19 +60,19 @@ export const kpiApi = {
     const params = new URLSearchParams()
     if (gestion) params.append("gestion", String(gestion))
     if (limite) params.append("limite", String(limite))
-    const response = await kpiClient.get<KPIPorComuna[]>(`/kpi/por-comuna?${params}`)
+    const response = await kpiClient.get<KPIPorComuna[]>(`/admin/kpi/por-comuna?${params}`)
     return response.data
   },
 
   getEvolucionAnual: async (anios?: number): Promise<KPIEvolucion[]> => {
     const params = new URLSearchParams()
     if (anios) params.append("anios", String(anios))
-    const response = await kpiClient.get<KPIEvolucion[]>(`/kpi/evolucion-anual?${params}`)
+    const response = await kpiClient.get<KPIEvolucion[]>(`/admin/kpi/evolucion-anual?${params}`)
     return response.data
   },
 
   invalidarCache: async (): Promise<void> => {
-    const response = await kpiClient.post("/kpi/cache/invalidar")
+    const response = await kpiClient.post("/admin/kpi/cache/invalidar")
     return response.data
   },
 
@@ -80,21 +80,21 @@ export const kpiApi = {
     const params = new URLSearchParams()
     if (gestion) params.append("gestion", String(gestion))
     if (limite) params.append("limite", String(limite))
-    const response = await kpiClient.get<KPITiempoResolucion[]>(`/kpi/tiempo-resolucion?${params}`)
+    const response = await kpiClient.get<KPITiempoResolucion[]>(`/admin/kpi/tiempo-resolucion?${params}`)
     return response.data
   },
 
   getTasaConclusion: async (gestion?: number): Promise<KPITasaConclusion[]> => {
     const params = new URLSearchParams()
     if (gestion) params.append("gestion", String(gestion))
-    const response = await kpiClient.get<KPITasaConclusion[]>(`/kpi/tasa-conclusion?${params}`)
+    const response = await kpiClient.get<KPITasaConclusion[]>(`/admin/kpi/tasa-conclusion?${params}`)
     return response.data
   },
 
   getEnMora: async (gestion?: number): Promise<KPIEnMora> => {
     const params = new URLSearchParams()
     if (gestion) params.append("gestion", String(gestion))
-    const response = await kpiClient.get<KPIEnMora>(`/kpi/en-mora?${params}`)
+    const response = await kpiClient.get<KPIEnMora>(`/admin/kpi/en-mora?${params}`)
     return response.data
   },
 }

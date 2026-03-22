@@ -111,7 +111,8 @@ export interface AsignarRolesRequest {
   editable?: boolean
 }
 
-export const capasApi = {
+// Admin capas API (Backoffice)
+export const capasAdminApi = {
   getAll: async (): Promise<CapaGIS[]> => {
     const response = await fetch(`${API_BASE_URL}/capas/admin/capas`, {
       headers: headers(),
@@ -123,7 +124,7 @@ export const capasApi = {
   },
 
   getAvailable: async (): Promise<CapaArcGIS[]> => {
-    const response = await fetch(`${API_BASE_URL}/capas/admin/disponibles`, {
+    const response = await fetch(`${API_BASE_URL}/capas/admin/capas/disponibles`, {
       headers: headers(),
     })
     if (!response.ok) {
@@ -155,7 +156,7 @@ export const capasApi = {
   },
 
   import: async (): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/capas/admin/importar`, {
+    const response = await fetch(`${API_BASE_URL}/capas/admin/capas/importar`, {
       method: "POST",
       headers: headers(),
     })
@@ -176,9 +177,27 @@ export const capasApi = {
   },
 }
 
+// Visor capas API (Storefront - capas públicas)
+export const capasVisorApi = {
+  getPublicas: async (): Promise<CapaGIS[]> => {
+    const response = await fetch(`${API_BASE_URL}/capas/visor/publicas`, {
+      headers: headers(),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to fetch public capas")
+    }
+    return response.json()
+  },
+}
+
+// Alias para backwards compatibility
+export const capasApi = capasAdminApi
+
 export const catalogoApi = {
   getMapas: async (): Promise<TemaMapa[]> => {
-    const response = await fetch(`${API_BASE_URL}/catalogo/mapas`)
+    const response = await fetch(`${API_BASE_URL}/catalogo/mapas`, {
+      headers: headers(),
+    })
     if (!response.ok) {
       throw new Error("Failed to fetch mapas")
     }
@@ -186,7 +205,9 @@ export const catalogoApi = {
   },
 
   getMapaConfig: async (slug: string): Promise<MapaConfig> => {
-    const response = await fetch(`${API_BASE_URL}/catalogo/mapa/${slug}`)
+    const response = await fetch(`${API_BASE_URL}/catalogo/mapa/${slug}`, {
+      headers: headers(),
+    })
     if (!response.ok) {
       throw new Error("Failed to fetch mapa config")
     }
@@ -196,7 +217,9 @@ export const catalogoApi = {
 
 export const mapasAdminApi = {
   getAll: async (): Promise<TemaMapa[]> => {
-    const response = await fetch(`${API_BASE_URL}/catalogo/mapas`)
+    const response = await fetch(`${API_BASE_URL}/catalogo/mapas`, {
+      headers: headers(),
+    })
     if (!response.ok) {
       throw new Error("Failed to fetch mapas")
     }
@@ -204,7 +227,9 @@ export const mapasAdminApi = {
   },
 
   getBySlug: async (slug: string): Promise<MapaConfig> => {
-    const response = await fetch(`${API_BASE_URL}/catalogo/mapa/${slug}`)
+    const response = await fetch(`${API_BASE_URL}/catalogo/mapa/${slug}`, {
+      headers: headers(),
+    })
     if (!response.ok) {
       throw new Error("Failed to fetch mapa")
     }
@@ -222,7 +247,9 @@ export const mapasAdminApi = {
   },
 
   getCapasAsignadas: async (_mapaId: number): Promise<CapaAsignada[]> => {
-    const response = await fetch(`${API_BASE_URL}/capas/admin/capas`)
+    const response = await fetch(`${API_BASE_URL}/capas/admin/capas`, {
+      headers: headers(),
+    })
     if (!response.ok) {
       throw new Error("Failed to fetch capas asignadas")
     }

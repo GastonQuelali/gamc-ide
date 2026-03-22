@@ -1,19 +1,17 @@
 import { useState, useEffect } from "react"
 import { Copy, Check, Search, Filter, MapPin, Wifi, WifiOff, LayoutGrid, List, Loader2, Save, X, Settings, RefreshCw, Upload, ExternalLink } from "lucide-react"
-import Sidebar from "@/components/Sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { capasApi, type CapaGIS, type CapaArcGIS, type CapaGISUpdate } from "@/lib/api"
+import { capasAdminApi, type CapaGIS, type CapaGISUpdate } from "@/lib/api"
 import { usePagination } from "@/hooks/usePagination"
 import { useFilters, type FilterConfig } from "@/hooks/useFilters"
 
 export default function AdminCapasPage() {
   const [capas, setCapas] = useState<CapaGIS[]>([])
-  const [capasDisponibles, setCapasDisponibles] = useState<CapaArcGIS[]>([])
   const [loading, setLoading] = useState(true)
   const [importing, setImporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -64,12 +62,8 @@ export default function AdminCapasPage() {
     setLoading(true)
     setError(null)
     try {
-      const [capasData, disponiblesData] = await Promise.all([
-        capasApi.getAll(),
-        capasApi.getAvailable()
-      ])
+      const capasData = await capasAdminApi.getAll()
       setCapas(capasData)
-      setCapasDisponibles(disponiblesData)
     } catch (err) {
       setError("Error al cargar las capas")
       console.error(err)
@@ -81,7 +75,7 @@ export default function AdminCapasPage() {
   const handleImport = async () => {
     setImporting(true)
     try {
-      await capasApi.import()
+      await capasAdminApi.import()
       await loadCapas()
       setShowImportModal(false)
     } catch (err) {
@@ -110,7 +104,7 @@ export default function AdminCapasPage() {
     if (!selectedCapa) return
     setSaving(true)
     try {
-      await capasApi.update(selectedCapa.id, editData)
+      await capasAdminApi.update(selectedCapa.id, editData)
       await loadCapas()
       setShowEditModal(false)
       setSelectedCapa(null)
@@ -161,8 +155,7 @@ export default function AdminCapasPage() {
   }
 
   return (
-    <Sidebar>
-      <div className="p-6">
+    <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Administración de Capas</h1>
           <div className="flex gap-2">
@@ -181,9 +174,6 @@ export default function AdminCapasPage() {
           <div className="flex items-center gap-4">
             <div className="text-sm">
               <span className="font-medium">{capas.length}</span> capas en base de datos
-            </div>
-            <div className="text-sm">
-              <span className="font-medium">{capasDisponibles.length}</span> capas disponibles en ArcGIS
             </div>
           </div>
         </Card>
@@ -494,17 +484,9 @@ export default function AdminCapasPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Se importarán {capasDisponibles.length} capas disponibles en ArcGIS Server.
+                  Se importarán todas las capas disponibles en ArcGIS Server.
                   Las capas se importarán como inactivas y no públicas.
                 </p>
-                <div className="max-h-60 overflow-y-auto border rounded">
-                  {capasDisponibles.map((capa, idx) => (
-                    <div key={idx} className="p-2 border-b text-sm">
-                      <div className="font-medium">{capa.nombre_servicio}</div>
-                      <div className="text-xs text-muted-foreground">{capa.tipo_servicio}</div>
-                    </div>
-                  ))}
-                </div>
                 <div className="flex gap-2 pt-4">
                   <Button variant="outline" className="flex-1" onClick={() => setShowImportModal(false)}>Cancelar</Button>
                   <Button className="flex-1" onClick={handleImport} disabled={importing}>
@@ -517,6 +499,5 @@ export default function AdminCapasPage() {
           </div>
         )}
       </div>
-    </Sidebar>
   )
 }

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Map, LayoutDashboard, Settings, LogOut, Menu, X, ChevronLeft, Layers, Shield, FileText, User } from "lucide-react"
+import { Map, LayoutDashboard, LogOut, Menu, X, ChevronLeft, Layers, FileText, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/useAuth"
 import { useTheme } from "@/hooks/useTheme"
@@ -16,10 +16,7 @@ const navItems = [
   { path: "/map", label: "Visor GIS", icon: Map },
   { path: "/mapa/bienes-view", label: "Bienes Municipales", icon: Map, indent: true },
   { path: "/capas", label: "Capas", icon: Layers },
-  { path: "/admin/mapas", label: "Mapas Temáticos", icon: Map, admin: true },
-  { path: "/admin/capas", label: "Admin Capas", icon: Shield, admin: true },
   { path: "/perfil", label: "Mi Perfil", icon: User },
-  { path: "/config", label: "Configuración", icon: Settings },
 ]
 
 export default function Sidebar({ children }: SidebarProps) {
@@ -28,13 +25,6 @@ export default function Sidebar({ children }: SidebarProps) {
   const { theme, toggleTheme } = useTheme()
   const [isOpen, setIsOpen] = useState(true)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
-
-  const isAdmin = user?.role === "admin" || user?.role === "supervisor"
-
-  const filteredNavItems = navItems.filter((item) => {
-    if (item.admin && !isAdmin) return false
-    return true
-  })
 
   const handleLogout = () => {
     logout()
@@ -76,7 +66,7 @@ export default function Sidebar({ children }: SidebarProps) {
         </div>
 
         <nav className="flex-1 p-2 space-y-1">
-          {filteredNavItems.map((item) => {
+          {navItems.map((item) => {
             const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + "/")
             return (
               <Link

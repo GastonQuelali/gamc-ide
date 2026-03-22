@@ -22,9 +22,9 @@ function CapaControl({ capa, layer }: CapaControlProps) {
         <Switch
           checked={layer.visible}
           onCheckedChange={(checked) => setVisibilidad(capa.id_relacion, checked)}
-          aria-label={`Visibilidad de ${capa.nombre_amigable}`}
+          aria-label={`Visibilidad de ${capa.nombre_en_mapa}`}
         />
-        <span className="flex-1 text-sm truncate">{capa.nombre_amigable}</span>
+        <span className="flex-1 text-sm truncate">{capa.nombre_en_mapa}</span>
         <Button
           variant="ghost"
           size="sm"
