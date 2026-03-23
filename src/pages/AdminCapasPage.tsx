@@ -23,12 +23,16 @@ export default function AdminCapasPage() {
   const [saving, setSaving] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
 
+  const gruposUnicos = [...new Set(capas.map(c => c.grupo).filter(Boolean) as string[])].sort()
+  const tiposUnicos = [...new Set(capas.map(c => c.tipo_servicio).filter(Boolean) as string[])].sort()
+
   const filterConfigs: FilterConfig[] = [
-    { key: "search", type: "search", label: "Buscar" },
+    { key: "search", type: "search", label: "Buscar", field: "nombre" },
     { key: "filterEstado", type: "select", label: "Estado" },
     { key: "filterActiva", type: "select", label: "Activa" },
     { key: "filterPublica", type: "select", label: "Pública" },
-    { key: "filterTipo", type: "select", label: "Tipo" },
+    { key: "filterTipo", type: "select", label: "Tipo", field: "tipo_servicio" },
+    { key: "filterGrupo", type: "select", label: "Grupo", field: "grupo" },
   ]
 
   const { filterValues, setFilter, filteredData } = useFilters<CapaGIS>({
@@ -41,6 +45,7 @@ export default function AdminCapasPage() {
   const filterActiva = String(filterValues.filterActiva || "all")
   const filterPublica = String(filterValues.filterPublica || "all")
   const filterTipo = String(filterValues.filterTipo || "all")
+  const filterGrupo = String(filterValues.filterGrupo || "all")
 
   const {
     paginatedItems: paginatedCapas,
@@ -214,9 +219,15 @@ export default function AdminCapasPage() {
               </Select>
               <Select value={filterTipo} onValueChange={(v) => setFilter("filterTipo", v)}>
                 <option value="all">Tipo: Todos</option>
-                <option value="Feature Layer">Feature Layer</option>
-                <option value="Map Image">Map Image</option>
-                <option value="Tile Layer">Tile Layer</option>
+                {tiposUnicos.map(tipo => (
+                  <option key={tipo} value={tipo}>{tipo}</option>
+                ))}
+              </Select>
+              <Select value={filterGrupo} onValueChange={(v) => setFilter("filterGrupo", v)}>
+                <option value="all">Grupo: Todos</option>
+                {gruposUnicos.map(grupo => (
+                  <option key={grupo} value={grupo}>{grupo}</option>
+                ))}
               </Select>
             </div>
           </CardContent>

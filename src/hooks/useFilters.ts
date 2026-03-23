@@ -8,6 +8,7 @@ export interface FilterConfig {
   label?: string
   placeholder?: string
   options?: { value: string; label: string }[]
+  field?: string
 }
 
 export interface UseFiltersOptions<T> {
@@ -62,10 +63,12 @@ export function useFilters<T>({
         continue
       }
 
+      const fieldName = filter.field || filter.key
+
       if (filter.type === "search") {
         const searchLower = String(value).toLowerCase()
         result = result.filter(item => {
-          const fieldValue = (item as Record<string, unknown>)[filter.key]
+          const fieldValue = (item as Record<string, unknown>)[fieldName]
           if (fieldValue === null || fieldValue === undefined) return false
           return String(fieldValue).toLowerCase().includes(searchLower)
         })
@@ -73,14 +76,14 @@ export function useFilters<T>({
 
       if (filter.type === "select") {
         result = result.filter(item => {
-          const fieldValue = (item as Record<string, unknown>)[filter.key]
+          const fieldValue = (item as Record<string, unknown>)[fieldName]
           return fieldValue === value
         })
       }
 
       if (filter.type === "boolean") {
         result = result.filter(item => {
-          const fieldValue = (item as Record<string, unknown>)[filter.key]
+          const fieldValue = (item as Record<string, unknown>)[fieldName]
           return Boolean(fieldValue) === Boolean(value)
         })
       }

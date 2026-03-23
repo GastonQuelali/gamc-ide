@@ -85,7 +85,7 @@ export function AdminMapasPage() {
     setTogglingId(null)
   }
 
-  const handleCreateMapa = () => {
+  const handleCreateMapa = async () => {
     if (!newMapa.nombre || !newMapa.slug) {
       setError("El nombre y slug son obligatorios")
       return
@@ -97,26 +97,32 @@ export function AdminMapasPage() {
     }
 
     setCreating(true)
-    const created: TemaMapa = {
-      id: Date.now(),
-      nombre: newMapa.nombre,
-      slug: newMapa.slug,
-      icono: newMapa.icono,
-      descripcion: newMapa.descripcion,
-      activo: true,
-    }
-
-    const localMapas = getLocalMapas()
-    const updated = [...localMapas, created]
-    saveLocalMapas(updated)
-    
-    setMapas((prev) => [...prev, created])
-    setIsCreateOpen(false)
-    setNewMapa({ nombre: "", slug: "", icono: "MapIcon", descripcion: "" })
     setError(null)
-    setCreating(false)
-    
-    navigate(`/admin/mapas/${created.id}/config`)
+
+    try {
+      const created = await mapasAdminApi.create({
+        nombre: newMapa.nombre,
+        slug: newMapa.slug,
+        icono: newMapa.icono,
+        descripcion: newMapa.descripcion,
+        activo: true,
+      })
+
+      const localMapas = getLocalMapas()
+      const updated = [...localMapas, created]
+      saveLocalMapas(updated)
+      
+      setMapas((prev) => [...prev, created])
+      setIsCreateOpen(false)
+      setNewMapa({ nombre: "", slug: "", icono: "MapIcon", descripcion: "" })
+      
+      navigate(`/admin/mapas/${created.slug}/config`)
+    } catch (err) {
+      console.error("Error creating mapa:", err)
+      setError("Error al crear el mapa. Intenta de nuevo.")
+    } finally {
+      setCreating(false)
+    }
   }
 
   const generateSlug = (nombre: string) => {
@@ -199,7 +205,7 @@ export function AdminMapasPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/admin/mapas/${mapa.id}/config`)}
+                        onClick={() => navigate(`/admin/mapas/${mapa.slug}/config`)}
                         className="gap-2"
                       >
                         <Settings className="h-4 w-4" />

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react"
-import type { CapaAsignada } from "@/types/mapa.types"
 import type { CapaGIS } from "@/lib/api"
+import type { CapaGis } from "@/types/mapa.types"
 
 interface CapaEditable {
   id: number
@@ -22,7 +22,8 @@ interface MapAdminContextValue {
   error: string | null
   hasChanges: boolean
   loadCapasDisponibles: () => Promise<void>
-  loadCapasAsignadas: (mapaId: number) => Promise<void>
+  setCapasAsignadasFromMapa: (capas: CapaGis[]) => void
+  setCapasAsignadas: React.Dispatch<React.SetStateAction<CapaEditable[]>>
   agregarCapa: (capa: CapaGIS) => void
   quitarCapa: (id: number) => void
   moverCapaArriba: (index: number) => void
@@ -31,6 +32,7 @@ interface MapAdminContextValue {
   setOpacidad: (id: number, opacidad: number) => void
   guardarCambios: (mapaId: number) => Promise<boolean>
   resetCambios: () => void
+  setHasChanges: (value: boolean) => void
 }
 
 const MapAdminContext = createContext<MapAdminContextValue | undefined>(undefined)
@@ -52,8 +54,8 @@ export function MapAdminProvider({ children }: MapAdminProviderProps) {
     setLoading(true)
     setError(null)
     try {
-      const { mapasAdminApi } = await import("@/lib/api")
-      const capas = await mapasAdminApi.getCapasDisponibles()
+      const { capasAdminApi } = await import("@/lib/api")
+      const capas = await capasAdminApi.getAll()
       setCapasDisponibles(capas.filter((c) => c.activa))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al cargar capas")
@@ -62,24 +64,21 @@ export function MapAdminProvider({ children }: MapAdminProviderProps) {
     }
   }, [])
 
-  const loadCapasAsignadas = useCallback(async (mapaId: number) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const { mapasAdminApi } = await import("@/lib/api")
-      const capas: CapaAsignada[] = await mapasAdminApi.getCapasAsignadas(mapaId)
-      const editables: CapaEditable[] = capas.map((c) => ({
-        ...c,
-        id: c.id,
-      }))
-      setCapasAsignadas(editables)
-      setOriginalAsignadas(editables)
-      setHasChanges(false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al cargar capas asignadas")
-    } finally {
-      setLoading(false)
-    }
+  const setCapasAsignadasFromMapa = useCallback((capasMapa: CapaGis[]) => {
+    const editables: CapaEditable[] = capasMapa.map((c) => ({
+      id: c.id_relacion,
+      capa_id: c.id_relacion,
+      nombre: c.nombre_en_mapa || c.nombre_tecnico_servicio,
+      url_servicio: c.url,
+      tipo: c.tipo,
+      grupo: c.grupo,
+      orden: c.orden,
+      visible: c.visible_inicial,
+      opacidad: c.opacidad,
+    }))
+    setCapasAsignadas(editables)
+    setOriginalAsignadas(editables)
+    setHasChanges(false)
   }, [])
 
   const agregarCapa = useCallback((capa: CapaGIS) => {
@@ -154,10 +153,10 @@ export function MapAdminProvider({ children }: MapAdminProviderProps) {
       const capasData = capasAsignadas.map((c, index) => ({
         capa_id: c.capa_id,
         orden: index + 1,
-        visible: c.visible,
-        opacidad: c.opacidad,
+        visible_inicial: c.visible,
+        nombre_en_mapa: c.nombre,
       }))
-      await mapasAdminApi.asignarCapas(mapaId, { capas: capasData })
+      await mapasAdminApi.asignarCapasAMapa(mapaId, capasData)
       setOriginalAsignadas(capasAsignadas)
       setHasChanges(false)
       return true
@@ -182,7 +181,8 @@ export function MapAdminProvider({ children }: MapAdminProviderProps) {
     error,
     hasChanges,
     loadCapasDisponibles,
-    loadCapasAsignadas,
+    setCapasAsignadasFromMapa,
+    setCapasAsignadas,
     agregarCapa,
     quitarCapa,
     moverCapaArriba,
@@ -191,6 +191,7 @@ export function MapAdminProvider({ children }: MapAdminProviderProps) {
     setOpacidad,
     guardarCambios,
     resetCambios,
+    setHasChanges,
   }
 
   return <MapAdminContext.Provider value={value}>{children}</MapAdminContext.Provider>

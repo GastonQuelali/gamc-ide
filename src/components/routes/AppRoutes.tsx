@@ -36,6 +36,7 @@ function AdminAuthRedirect() {
 
 function AdminRouteRedirect() {
   const { user, isLoading } = useAuth()
+  const token = localStorage.getItem("gamc_token")
   
   if (isLoading) {
     return (
@@ -45,7 +46,7 @@ function AdminRouteRedirect() {
     )
   }
 
-  if (!user) {
+  if (!user || !token) {
     return <Navigate to="/admin" replace />
   }
 
@@ -116,7 +117,7 @@ export function AppRoutes() {
       <Route element={<AdminRouteRedirect />}>
         <Route path="admin/dashboard" element={<AdminDashboardPage />} />
         <Route path="admin/mapas" element={<AdminMapasPage />} />
-        <Route path="admin/mapas/:id/config" element={<AdminCapasConfigPage />} />
+        <Route path="admin/mapas/:slug/config" element={<AdminCapasConfigPage />} />
         <Route path="admin/capas" element={<AdminCapasPage />} />
         <Route path="admin/usuarios" element={<AdminUsuariosPage />} />
         <Route path="admin/reportes" element={<AdminReportesPage />} />

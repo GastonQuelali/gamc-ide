@@ -6,16 +6,21 @@ import PopupTemplate from "@arcgis/core/PopupTemplate"
 import type { CapaGis } from "@/types/mapa.types"
 
 export function createCapaGis(capa: CapaGis): Layer | null {
+  const layerTitle = capa.nombre_amigable || capa.nombre_tecnico_servicio || "Capa sin nombre"
+  
   const baseProps = {
     id: String(capa.id_relacion),
-    title: capa.nombre_en_mapa,
+    title: layerTitle,
     visible: capa.visible_inicial,
     opacity: capa.opacidad,
   }
 
   const popupTemplate = crearPopupTemplate(capa.popup_config)
 
+  console.log(`[LayerFactory] Creando capa: "${layerTitle}" | tipo: "${capa.tipo}" | url: ${capa.url}`)
+
   switch (capa.tipo) {
+    case "raster":
     case "dynamic":
       return new MapImageLayer({
         url: capa.url,
@@ -37,8 +42,12 @@ export function createCapaGis(capa: CapaGis): Layer | null {
       })
 
     default:
-      console.warn(`Unknown layer tipo: ${capa.tipo} for capa ${capa.nombre_en_mapa}`)
-      return null
+      console.warn(`[LayerFactory] Tipo desconocido: "${capa.tipo}" para capa "${layerTitle}". Usando MapImageLayer por defecto.`)
+      return new MapImageLayer({
+        url: capa.url,
+        ...baseProps,
+        ...(popupTemplate && { popupTemplate }),
+      })
   }
 }
 

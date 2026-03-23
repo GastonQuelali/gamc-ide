@@ -1,29 +1,63 @@
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom"
-import { useEffect, useMemo } from "react"
-import { Map, User, LogOut, Layers, Home, Loader2 } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { Map, User, LogOut, Layers, Home, Loader2, ChevronDown, ChevronRight } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { useMapaConfig } from "@/hooks/useMapaConfig"
 import { MapProvider } from "@/context/MapContext"
-import { TOCAccordion } from "@/components/map/TOCAccordion"
 import { Button } from "@/components/ui/button"
+import { catalogoApi } from "@/lib/api"
+import type { TemaMapa } from "@/types/mapa.types"
 
 function extractSlug(pathname: string): string | null {
   const match = pathname.match(/^\/mapa\/(.+)$/)
   return match ? match[1] : null
 }
 
+const LOCAL_MAPAS_KEY = "gamc_local_mapas"
+
+function getLocalMapas(): TemaMapa[] {
+  const stored = localStorage.getItem(LOCAL_MAPAS_KEY)
+  return stored ? JSON.parse(stored) : []
+}
+
 function NormalSidebar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const [mapas, setMapas] = useState<TemaMapa[]>([])
+  const [loadingMapas, setLoadingMapas] = useState(true)
+  const [mapasExpanded, setMapasExpanded] = useState(true)
 
   const handleLogout = () => {
     logout()
     navigate("/")
   }
 
+  useEffect(() => {
+    const loadMapas = async () => {
+      setLoadingMapas(true)
+      try {
+        const apiMapas = await catalogoApi.getMapas()
+        const localMapas = getLocalMapas()
+        const combined = [...localMapas]
+        apiMapas.forEach((apiMapa) => {
+          if (!combined.some((m) => m.slug === apiMapa.slug)) {
+            combined.push(apiMapa)
+          }
+        })
+        setMapas(combined.filter((m) => m.activo))
+      } catch (err) {
+        console.error("Error loading mapas:", err)
+        setMapas(getLocalMapas().filter((m) => m.activo))
+      } finally {
+        setLoadingMapas(false)
+      }
+    }
+    loadMapas()
+  }, [])
+
   return (
     <>
-      <nav className="flex-1 p-2 space-y-1">
+      <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
         <NavLink
           to="/dashboard"
           end
@@ -39,19 +73,58 @@ function NormalSidebar() {
           <span className="text-sm font-medium">Dashboard</span>
         </NavLink>
 
-        <NavLink
-          to="/mapa/bienes-view"
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-              isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`
-          }
-        >
-          <Map className="h-5 w-5" />
-          <span className="text-sm font-medium">Mis Mapas</span>
-        </NavLink>
+        <div className="pt-2">
+          <button
+            onClick={() => setMapasExpanded(!mapasExpanded)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg transition-all"
+          >
+            {mapasExpanded ? (
+              <ChevronDown className="h-5 w-5" />
+            ) : (
+              <ChevronRight className="h-5 w-5" />
+            )}
+            <Map className="h-5 w-5" />
+            <span className="text-sm font-medium flex-1 text-left">Mis Mapas</span>
+            {!loadingMapas && (
+              <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                {mapas.length}
+              </span>
+            )}
+            {loadingMapas && (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            )}
+          </button>
+
+          {mapasExpanded && (
+            <div className="ml-4 mt-1 space-y-0.5">
+              {loadingMapas ? (
+                <div className="px-3 py-2 text-xs text-muted-foreground">
+                  Cargando mapas...
+                </div>
+              ) : mapas.length === 0 ? (
+                <div className="px-3 py-2 text-xs text-muted-foreground">
+                  No hay mapas disponibles
+                </div>
+              ) : (
+                mapas.map((mapa) => (
+                  <NavLink
+                    key={mapa.slug}
+                    to={`/mapa/${mapa.slug}`}
+                    className={({ isActive }) =>
+                      `flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`
+                    }
+                  >
+                    <span className="truncate">{mapa.nombre}</span>
+                  </NavLink>
+                ))
+              )}
+            </div>
+          )}
+        </div>
 
         <NavLink
           to="/capas"
@@ -133,12 +206,6 @@ function MapSidebar({ slug }: { slug: string }) {
             <p className="text-xs text-destructive">{error}</p>
           </div>
         )}
-
-        {!loading && !error && mapaConfig?.capas && (
-          <div className="h-full overflow-y-auto">
-            <TOCAccordion capas={mapaConfig.capas} />
-          </div>
-        )}
       </div>
 
       <NormalSidebar />
@@ -152,29 +219,29 @@ export function StorefrontLayout() {
   const isMapRoute = !!slug
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <aside className="w-64 bg-card border-r flex flex-col">
-        <div className="p-4 border-b">
-          <NavLink to="/dashboard" className="block">
-            <h1 className="font-bold text-lg">GAMC-IDE</h1>
-            <p className="text-xs text-muted-foreground">
-              {isMapRoute ? "Visor de Mapas" : "Portal de Consulta"}
-            </p>
-          </NavLink>
-        </div>
+    <MapProvider>
+      <div className="flex h-screen overflow-hidden">
+        <aside className="w-64 bg-card border-r flex flex-col">
+          <div className="p-4 border-b">
+            <NavLink to="/dashboard" className="block">
+              <h1 className="font-bold text-lg">GAMC-IDE</h1>
+              <p className="text-xs text-muted-foreground">
+                {isMapRoute ? "Visor de Mapas" : "Portal de Consulta"}
+              </p>
+            </NavLink>
+          </div>
 
-        {isMapRoute ? (
-          <MapSidebar slug={slug} />
-        ) : (
-          <NormalSidebar />
-        )}
-      </aside>
+          {isMapRoute ? (
+            <MapSidebar slug={slug} />
+          ) : (
+            <NormalSidebar />
+          )}
+        </aside>
 
-      <main className="flex-1 overflow-hidden">
-        <MapProvider>
+        <main className="flex-1 overflow-hidden">
           <Outlet />
-        </MapProvider>
-      </main>
-    </div>
+        </main>
+      </div>
+    </MapProvider>
   )
 }

@@ -20,6 +20,7 @@ export function AdminUsuariosPage() {
           <h2 className="text-xl font-semibold mb-2">Próximamente</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
             La gestión de usuarios estará disponible en la próxima versión del sistema.
+            Los endpoints del backend están en desarrollo.
           </p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
 import {
   Map,
   Layers,
@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
+  LogOut,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
@@ -48,7 +49,13 @@ function NavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
 
 export function AdminSidebar() {
   const [collapsed, setCollapsed] = useState(false)
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate("/admin")
+  }
 
   return (
     <div
@@ -97,6 +104,17 @@ export function AdminSidebar() {
           <ArrowLeft className="h-5 w-5 flex-shrink-0" />
           {!collapsed && <span className="text-sm font-medium">Ir al Storefront</span>}
         </NavLink>
+
+        <Button
+          variant="ghost"
+          onClick={handleLogout}
+          className={`w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 ${
+            collapsed ? "px-2" : "px-3"
+          }`}
+        >
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span className="text-sm font-medium ml-3">Cerrar Sesión</span>}
+        </Button>
 
         {user && !collapsed && (
           <div className="px-3 py-2">

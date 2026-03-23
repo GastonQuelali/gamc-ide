@@ -1,4 +1,4 @@
-import type { TemaMapa, MapaConfig, CapaAsignada } from "@/types/mapa.types"
+import type { TemaMapa, MapaConfig } from "@/types/mapa.types"
 
 const API_BASE_URL = "/api/v1"
 
@@ -177,14 +177,14 @@ export const capasAdminApi = {
   },
 }
 
-// Visor capas API (Storefront - capas públicas)
+// Visor capas API (Storefront - capas según rol del usuario)
 export const capasVisorApi = {
   getPublicas: async (): Promise<CapaGIS[]> => {
-    const response = await fetch(`${API_BASE_URL}/capas/visor/publicas`, {
+    const response = await fetch(`${API_BASE_URL}/capas/`, {
       headers: headers(),
     })
     if (!response.ok) {
-      throw new Error("Failed to fetch public capas")
+      throw new Error("Failed to fetch capas")
     }
     return response.json()
   },
@@ -246,40 +246,34 @@ export const mapasAdminApi = {
     return response.json()
   },
 
-  getCapasAsignadas: async (_mapaId: number): Promise<CapaAsignada[]> => {
-    const response = await fetch(`${API_BASE_URL}/capas/admin/capas`, {
+  getMapaDetalle: async (slug: string): Promise<MapaConfig> => {
+    const response = await fetch(`${API_BASE_URL}/catalogo/mapa/${slug}`, {
       headers: headers(),
     })
     if (!response.ok) {
-      throw new Error("Failed to fetch capas asignadas")
+      throw new Error("Failed to fetch mapa detalle")
     }
-    const capas: CapaGIS[] = await response.json()
-    return capas.filter(c => c.activa).map((c, index) => ({
-      id: c.id,
-      capa_id: c.id,
-      nombre: c.nombre,
-      url_servicio: c.url_servicio,
-      tipo: c.tipo || "feature",
-      grupo: c.grupo,
-      orden: index + 1,
-      visible: c.visible,
-      opacidad: c.opacity,
-    }))
+    return response.json()
   },
 
-  asignarCapas: async (mapaId: number, _data: unknown): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/capas/admin/capas/${mapaId}/roles`, {
+  asignarCapasAMapa: async (mapaId: number, capas: Array<{
+    capa_id: number
+    orden: number
+    visible_inicial: boolean
+    nombre_en_mapa?: string
+  }>): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/catalogo/admin/mapas/${mapaId}/asignar-capas`, {
       method: "POST",
       headers: headers(),
-      body: JSON.stringify({ roles: ["admin", "supervisor", "inspector"], visible: true, editable: false }),
+      body: JSON.stringify(capas),
     })
     if (!response.ok) {
-      throw new Error("Failed to save capas assignment")
+      throw new Error("Failed to assign capas to mapa")
     }
   },
 
   create: async (data: Partial<TemaMapa>): Promise<TemaMapa> => {
-    const response = await fetch(`${API_BASE_URL}/admin/mapas`, {
+    const response = await fetch(`${API_BASE_URL}/catalogo/admin/mapas`, {
       method: "POST",
       headers: headers(),
       body: JSON.stringify(data),
@@ -291,7 +285,7 @@ export const mapasAdminApi = {
   },
 
   update: async (id: number, data: Partial<TemaMapa>): Promise<TemaMapa> => {
-    const response = await fetch(`${API_BASE_URL}/admin/mapas/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/catalogo/admin/mapas/${id}`, {
       method: "PUT",
       headers: headers(),
       body: JSON.stringify(data),
@@ -303,13 +297,108 @@ export const mapasAdminApi = {
   },
 
   toggleActivo: async (id: number, activo: boolean): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/admin/mapas/${id}/toggle`, {
+    const response = await fetch(`${API_BASE_URL}/catalogo/admin/mapas/${id}`, {
       method: "PATCH",
       headers: headers(),
       body: JSON.stringify({ activo }),
     })
     if (!response.ok) {
       throw new Error("Failed to toggle mapa")
+    }
+  },
+}
+
+export interface Usuario {
+  id: string
+  persona_id: string
+  nombre: string
+  apellido: string | null
+  email: string | null
+  rol: string
+  activo: boolean
+  ultimo_login: string | null
+  creado_en: string | null
+}
+
+export interface UsuarioCreate {
+  nombre: string
+  clave: string
+  rol: string
+  email?: string
+  activo?: boolean
+}
+
+export interface UsuarioUpdate {
+  nombre?: string
+  email?: string
+  rol?: string
+  activo?: boolean
+  clave?: string
+}
+
+export const usuariosApi = {
+  getAll: async (): Promise<Usuario[]> => {
+    const response = await fetch(`${API_BASE_URL}/admin/usuarios`, {
+      headers: headers(),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to fetch usuarios")
+    }
+    return response.json()
+  },
+
+  getById: async (id: string): Promise<Usuario> => {
+    const response = await fetch(`${API_BASE_URL}/admin/usuarios/${id}`, {
+      headers: headers(),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to fetch usuario")
+    }
+    return response.json()
+  },
+
+  create: async (data: UsuarioCreate): Promise<Usuario> => {
+    const response = await fetch(`${API_BASE_URL}/admin/usuarios`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to create usuario")
+    }
+    return response.json()
+  },
+
+  update: async (id: string, data: UsuarioUpdate): Promise<Usuario> => {
+    const response = await fetch(`${API_BASE_URL}/admin/usuarios/${id}`, {
+      method: "PUT",
+      headers: headers(),
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to update usuario")
+    }
+    return response.json()
+  },
+
+  delete: async (id: string): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/admin/usuarios/${id}`, {
+      method: "DELETE",
+      headers: headers(),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to delete usuario")
+    }
+  },
+
+  toggleActivo: async (id: string, activo: boolean): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}/admin/usuarios/${id}/toggle`, {
+      method: "PATCH",
+      headers: headers(),
+      body: JSON.stringify({ activo }),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to toggle usuario")
     }
   },
 }

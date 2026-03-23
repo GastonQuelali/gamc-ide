@@ -25,8 +25,26 @@ export default function MapaPage() {
         <p className="text-muted-foreground mb-4">
           Elige un mapa temático del panel izquierdo para comenzar.
         </p>
-        <Button onClick={() => navigate("/mapa/bienes-view")}>
-          Ir a Gestión de Bienes Municipales
+        <Button onClick={() => navigate("/dashboard")}>
+          Ir al Dashboard
+        </Button>
+      </div>
+    )
+  }
+
+  if (error && !loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-muted">
+        <AlertTriangle className="h-16 w-16 text-red-500 mb-4" />
+        <h2 className="text-xl font-semibold mb-2">Mapa no encontrado</h2>
+        <p className="text-muted-foreground mb-2">
+          El mapa <code className="bg-muted px-2 py-1 rounded">{slug}</code> no existe o no está disponible.
+        </p>
+        <p className="text-sm text-muted-foreground mb-4">
+          Selecciona un mapa del panel izquierdo.
+        </p>
+        <Button variant="outline" onClick={() => navigate("/dashboard")}>
+          Ir al Dashboard
         </Button>
       </div>
     )
